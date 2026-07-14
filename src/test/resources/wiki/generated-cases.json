@@ -1,0 +1,909 @@
+[
+ {
+  "name": "Osmumten's fang in max melee",
+  "monsterId": 415,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 26382,
+   "cape": 21285,
+   "neck": 19553,
+   "weapon": 26219,
+   "body": 26384,
+   "shield": 22322,
+   "legs": 26386,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 50
+ },
+ {
+  "name": "Osmumten's fang with salve in max melee",
+  "monsterId": 8059,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 26382,
+   "cape": 21285,
+   "neck": 12018,
+   "weapon": 26219,
+   "body": 26384,
+   "shield": 22322,
+   "legs": 26386,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 57
+ },
+ {
+  "name": "Osmumten's fang with avarice in max melee",
+  "monsterId": 7939,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 26382,
+   "cape": 21285,
+   "neck": 22557,
+   "weapon": 26219,
+   "body": 26384,
+   "shield": 22322,
+   "legs": 26386,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 58
+ },
+ {
+  "name": "Osmumten's fang with slayer helmet in max melee",
+  "monsterId": 415,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {
+   "onSlayerTask": true
+  },
+  "equipment": {
+   "head": 11865,
+   "cape": 21285,
+   "neck": 19553,
+   "weapon": 26219,
+   "body": 26384,
+   "shield": 22322,
+   "legs": 26386,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 56
+ },
+ {
+  "name": "Osmumten's fang in void",
+  "monsterId": 415,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 11665,
+   "cape": 21285,
+   "neck": 19553,
+   "weapon": 26219,
+   "body": 13072,
+   "shield": 22322,
+   "legs": 13073,
+   "hands": 8842,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 47
+ },
+ {
+  "name": "Osmumten's fang with salve in void",
+  "monsterId": 8059,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 11665,
+   "cape": 21285,
+   "neck": 12018,
+   "weapon": 26219,
+   "body": 13072,
+   "shield": 22322,
+   "legs": 13073,
+   "hands": 8842,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 53
+ },
+ {
+  "name": "Dragon hunter lance in max melee",
+  "monsterId": 8059,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Controlled"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 26382,
+   "cape": 21285,
+   "neck": 19553,
+   "weapon": 22978,
+   "body": 26384,
+   "shield": 22322,
+   "legs": 26386,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 58
+ },
+ {
+  "name": "Blisterwood flail in max melee",
+  "monsterId": 9567,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Pound",
+   "type": "crush",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 26382,
+   "cape": 21285,
+   "neck": 19553,
+   "weapon": 24699,
+   "body": 26384,
+   "shield": 22322,
+   "legs": 26386,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 55
+ },
+ {
+  "name": "Obsidian sword in obsidian armour",
+  "monsterId": 415,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 21298,
+   "cape": 21285,
+   "neck": 19553,
+   "weapon": 6523,
+   "body": 21301,
+   "shield": 22322,
+   "legs": 21304,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 46
+ },
+ {
+  "name": "Obsidian sword with berserker necklace in obsidian armour",
+  "monsterId": 415,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 21298,
+   "cape": 21285,
+   "neck": 19553,
+   "weapon": 6523,
+   "body": 21301,
+   "shield": 22322,
+   "legs": 21304,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 46
+ },
+ {
+  "name": "Obsidian sword with salve in obsidian armour",
+  "monsterId": 8059,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 21298,
+   "cape": 21285,
+   "neck": 12018,
+   "weapon": 6523,
+   "body": 21301,
+   "shield": 22322,
+   "legs": 21304,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 52
+ },
+ {
+  "name": "Obsidian sword with avarice in obsidian armour",
+  "monsterId": 7939,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Lunge",
+   "type": "stab",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 21298,
+   "cape": 21285,
+   "neck": 22557,
+   "weapon": 6523,
+   "body": 21301,
+   "shield": 22322,
+   "legs": 21304,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 53
+ },
+ {
+  "name": "Viggora's chainmace in max melee",
+  "monsterId": 415,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Pummel",
+   "type": "crush",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {
+   "inWilderness": true
+  },
+  "equipment": {
+   "head": 26382,
+   "cape": 21285,
+   "neck": 19553,
+   "weapon": 22545,
+   "body": 26384,
+   "shield": 22322,
+   "legs": 26386,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 73
+ },
+ {
+  "name": "Viggora's chainmace in void",
+  "monsterId": 415,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Pummel",
+   "type": "crush",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {
+   "inWilderness": true
+  },
+  "equipment": {
+   "head": 11665,
+   "cape": 21285,
+   "neck": 19553,
+   "weapon": 22545,
+   "body": 13072,
+   "shield": 22322,
+   "legs": 13073,
+   "hands": 8842,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 67
+ },
+ {
+  "name": "Viggora's chainmace with avarice in max melee",
+  "monsterId": 7939,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Pummel",
+   "type": "crush",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {
+   "inWilderness": true
+  },
+  "equipment": {
+   "head": 26382,
+   "cape": 21285,
+   "neck": 22557,
+   "weapon": 22545,
+   "body": 26384,
+   "shield": 22322,
+   "legs": 26386,
+   "hands": 22981,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 85
+ },
+ {
+  "name": "Viggora's chainmace with avarice in void",
+  "monsterId": 7939,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 99
+  },
+  "prayers": [
+   "PIETY"
+  ],
+  "style": {
+   "name": "Pummel",
+   "type": "crush",
+   "stance": "Aggressive"
+  },
+  "spell": null,
+  "buffs": {
+   "inWilderness": true
+  },
+  "equipment": {
+   "head": 11665,
+   "cape": 21285,
+   "neck": 22557,
+   "weapon": 22545,
+   "body": 13072,
+   "shield": 22322,
+   "legs": 13073,
+   "hands": 8842,
+   "feet": 13239,
+   "ring": 11773
+  },
+  "expectedMaxHit": 78
+ },
+ {
+  "name": "Tumeken's shadow in max mage",
+  "monsterId": 415,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Accurate",
+   "type": "magic",
+   "stance": "Accurate"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 21018,
+   "cape": 21780,
+   "neck": 12002,
+   "weapon": 27275,
+   "body": 21021,
+   "legs": 21024,
+   "hands": 19544,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 65
+ },
+ {
+  "name": "Tumeken's shadow with salve in max mage",
+  "monsterId": 8059,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Accurate",
+   "type": "magic",
+   "stance": "Accurate"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 21018,
+   "cape": 21780,
+   "neck": 12018,
+   "weapon": 27275,
+   "body": 21021,
+   "legs": 21024,
+   "hands": 19544,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 67
+ },
+ {
+  "name": "Tumeken's shadow with slayer helmet in max mage",
+  "monsterId": 415,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Accurate",
+   "type": "magic",
+   "stance": "Accurate"
+  },
+  "spell": null,
+  "buffs": {
+   "onSlayerTask": true
+  },
+  "equipment": {
+   "head": 11865,
+   "cape": 21780,
+   "neck": 12002,
+   "weapon": 27275,
+   "body": 21021,
+   "legs": 21024,
+   "hands": 19544,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 70
+ },
+ {
+  "name": "Tumeken's shadow in void",
+  "monsterId": 415,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Accurate",
+   "type": "magic",
+   "stance": "Accurate"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 11663,
+   "cape": 21780,
+   "neck": 12002,
+   "weapon": 27275,
+   "body": 13072,
+   "legs": 13073,
+   "hands": 8842,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 51
+ },
+ {
+  "name": "Tumeken's shadow with salve in void",
+  "monsterId": 8059,
+  "skills": {
+   "atk": 118,
+   "str": 118,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Accurate",
+   "type": "magic",
+   "stance": "Accurate"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 11663,
+   "cape": 21780,
+   "neck": 12018,
+   "weapon": 27275,
+   "body": 13072,
+   "legs": 13073,
+   "hands": 8842,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 53
+ },
+ {
+  "name": "Bone staff in max mage",
+  "monsterId": 7222,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Accurate",
+   "type": "magic",
+   "stance": "Accurate"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 21018,
+   "cape": 21780,
+   "neck": 12002,
+   "weapon": 28796,
+   "body": 21021,
+   "shield": 25985,
+   "legs": 21024,
+   "hands": 19544,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 53
+ },
+ {
+  "name": "Bone staff with slayer helmet in max mage",
+  "monsterId": 1680,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Accurate",
+   "type": "magic",
+   "stance": "Accurate"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 11865,
+   "cape": 21780,
+   "neck": 12002,
+   "weapon": 28796,
+   "body": 21021,
+   "shield": 25985,
+   "legs": 21024,
+   "hands": 19544,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 59
+ },
+ {
+  "name": "Bone staff in void",
+  "monsterId": 7222,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Accurate",
+   "type": "magic",
+   "stance": "Accurate"
+  },
+  "spell": null,
+  "buffs": {},
+  "equipment": {
+   "head": 11663,
+   "cape": 21780,
+   "neck": 12002,
+   "weapon": 28796,
+   "body": 13072,
+   "shield": 25985,
+   "legs": 13073,
+   "hands": 8842,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 49
+ },
+ {
+  "name": "Fire bolt with chaos gauntlets",
+  "monsterId": 415,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Spell",
+   "type": "magic",
+   "stance": "Autocast"
+  },
+  "spell": "Fire Bolt",
+  "buffs": {},
+  "equipment": {
+   "head": 21018,
+   "cape": 21780,
+   "neck": 12002,
+   "weapon": 11791,
+   "body": 21021,
+   "shield": 25985,
+   "legs": 21024,
+   "hands": 777,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 20
+ },
+ {
+  "name": "Fire bolt with chaos gauntlets and salve",
+  "monsterId": 8059,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Spell",
+   "type": "magic",
+   "stance": "Autocast"
+  },
+  "spell": "Fire Bolt",
+  "buffs": {},
+  "equipment": {
+   "head": 21018,
+   "cape": 21780,
+   "neck": 12018,
+   "weapon": 11791,
+   "body": 21021,
+   "shield": 25985,
+   "legs": 21024,
+   "hands": 777,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 28
+ },
+ {
+  "name": "Fire bolt with chaos gauntlets and tome of fire",
+  "monsterId": 415,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Spell",
+   "type": "magic",
+   "stance": "Autocast"
+  },
+  "spell": "Fire Bolt",
+  "buffs": {},
+  "equipment": {
+   "head": 21018,
+   "cape": 21780,
+   "neck": 12002,
+   "weapon": 11791,
+   "body": 21021,
+   "shield": 20714,
+   "legs": 21024,
+   "hands": 777,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 22
+ },
+ {
+  "name": "Fire bolt with chaos gauntlets, salve, and tome of fire",
+  "monsterId": 8059,
+  "skills": {
+   "atk": 99,
+   "str": 99,
+   "ranged": 99,
+   "magic": 112
+  },
+  "prayers": [],
+  "style": {
+   "name": "Spell",
+   "type": "magic",
+   "stance": "Autocast"
+  },
+  "spell": "Fire Bolt",
+  "buffs": {},
+  "equipment": {
+   "head": 21018,
+   "cape": 21780,
+   "neck": 12018,
+   "weapon": 11791,
+   "body": 21021,
+   "shield": 20714,
+   "legs": 21024,
+   "hands": 777,
+   "feet": 13235,
+   "ring": 28313
+  },
+  "expectedMaxHit": 30
+ }
+]

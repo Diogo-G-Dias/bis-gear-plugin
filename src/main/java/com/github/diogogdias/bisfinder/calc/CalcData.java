@@ -1,0 +1,116 @@
+package com.github.diogogdias.bisfinder.calc;
+
+import com.github.diogogdias.bisfinder.calc.model.EquipmentPiece;
+import com.github.diogogdias.bisfinder.calc.model.Spell;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Holds the datasets that osrs-dps-calc imports at module level (equipment.json in src/lib/Equipment.ts,
+ * spells.json in src/types/Spell.ts, equipment_aliases.json in src/lib/EquipmentAliases.ts) and which the
+ * ported calculator therefore needs global access to.
+ *
+ * <p>The equipment and spell lists are supplied by the caller (see WikiDataClient); the alias map ships
+ * with the plugin as a resource, because the calculator cannot canonicalise item IDs without it.
+ */
+public final class CalcData
+{
+	private static final String ALIASES_RESOURCE = "/com/github/diogogdias/bisfinder/calc/equipment_aliases.json";
+
+	private static volatile List<EquipmentPiece> availableEquipment = Collections.emptyList();
+	private static volatile Map<Integer, EquipmentPiece> equipmentById = Collections.emptyMap();
+	private static volatile List<Spell> spells = Collections.emptyList();
+	private static volatile Map<Integer, Integer> equipmentAliases;
+
+	private CalcData()
+	{
+	}
+
+	public static void setAvailableEquipment(List<EquipmentPiece> equipment)
+	{
+		Map<Integer, EquipmentPiece> byId = new HashMap<>(equipment.size());
+		for (EquipmentPiece piece : equipment)
+		{
+			byId.putIfAbsent(piece.getId(), piece);
+		}
+
+		availableEquipment = Collections.unmodifiableList(new java.util.ArrayList<>(equipment));
+		equipmentById = Collections.unmodifiableMap(byId);
+	}
+
+	public static List<EquipmentPiece> getAvailableEquipment()
+	{
+		return availableEquipment;
+	}
+
+	/**
+	 * @return the equipment piece with the given item ID, or null if unknown
+	 */
+	public static EquipmentPiece equipmentById(int id)
+	{
+		return equipmentById.get(id);
+	}
+
+	public static void setSpells(List<Spell> allSpells)
+	{
+		spells = Collections.unmodifiableList(new java.util.ArrayList<>(allSpells));
+	}
+
+	public static List<Spell> getSpells()
+	{
+		return spells;
+	}
+
+	/**
+	 * Variant item ID -> canonical (base) item ID.
+	 */
+	public static Map<Integer, Integer> getEquipmentAliases()
+	{
+		Map<Integer, Integer> aliases = equipmentAliases;
+		if (aliases == null)
+		{
+			synchronized (CalcData.class)
+			{
+				aliases = equipmentAliases;
+				if (aliases == null)
+				{
+					aliases = loadAliases();
+					equipmentAliases = aliases;
+				}
+			}
+		}
+		return aliases;
+	}
+
+	private static Map<Integer, Integer> loadAliases()
+	{
+		Type type = new TypeToken<Map<Integer, Integer>>()
+		{
+		}.getType();
+
+		try (InputStream in = CalcData.class.getResourceAsStream(ALIASES_RESOURCE))
+		{
+			if (in == null)
+			{
+				return Collections.emptyMap();
+			}
+
+			Map<Integer, Integer> parsed = new Gson().fromJson(
+				new InputStreamReader(in, StandardCharsets.UTF_8), type);
+			return parsed == null ? Collections.emptyMap() : Collections.unmodifiableMap(parsed);
+		}
+		catch (IOException e)
+		{
+			return Collections.emptyMap();
+		}
+	}
+}
