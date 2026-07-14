@@ -2,12 +2,10 @@ package com.github.diogogdias.bisfinder.calc;
 
 import com.github.diogogdias.bisfinder.calc.model.EquipmentPiece;
 import com.github.diogogdias.bisfinder.calc.model.Spell;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -93,10 +91,8 @@ public final class CalcData
 
 	private static Map<Integer, Integer> loadAliases()
 	{
-		Type type = new TypeToken<Map<Integer, Integer>>()
-		{
-		}.getType();
-
+		// Read with the streaming JsonReader rather than a Gson instance: the plugin hub rejects plugins that
+		// construct their own Gson, and this static holder has no injector to take the client's Gson from.
 		try (InputStream in = CalcData.class.getResourceAsStream(ALIASES_RESOURCE))
 		{
 			if (in == null)
@@ -104,9 +100,17 @@ public final class CalcData
 				return Collections.emptyMap();
 			}
 
-			Map<Integer, Integer> parsed = new Gson().fromJson(
-				new InputStreamReader(in, StandardCharsets.UTF_8), type);
-			return parsed == null ? Collections.emptyMap() : Collections.unmodifiableMap(parsed);
+			Map<Integer, Integer> parsed = new HashMap<>();
+			try (JsonReader reader = new JsonReader(new InputStreamReader(in, StandardCharsets.UTF_8)))
+			{
+				reader.beginObject();
+				while (reader.hasNext())
+				{
+					parsed.put(Integer.parseInt(reader.nextName()), reader.nextInt());
+				}
+				reader.endObject();
+			}
+			return Collections.unmodifiableMap(parsed);
 		}
 		catch (IOException e)
 		{
