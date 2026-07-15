@@ -164,6 +164,22 @@ class BisFinderPanel extends PluginPanel
 			}
 		});
 
+		// The monster list only appears while the search field (or the list itself) is focused, so it does not
+		// sit open taking up the sidebar the rest of the time. IconTextField wraps a private inner text field
+		// and does not forward focus listeners, so watch the global focus owner instead.
+		java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager()
+			.addPropertyChangeListener("focusOwner", evt ->
+			{
+				if (!(evt.getNewValue() instanceof Component))
+				{
+					return;
+				}
+				Component focused = (Component) evt.getNewValue();
+				boolean inSearchOrList = javax.swing.SwingUtilities.isDescendingFrom(focused, search)
+					|| javax.swing.SwingUtilities.isDescendingFrom(focused, resultScroll);
+				showResults(inSearchOrList);
+			});
+
 		results.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		results.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		results.setFixedCellHeight(28);
@@ -202,6 +218,7 @@ class BisFinderPanel extends PluginPanel
 				findButton.setEnabled(true);
 				monsterImage.setIcon(null);
 				clearResult();
+				showResults(false);
 				plugin.loadMonsterImage(picked);
 			}
 		});
@@ -255,8 +272,16 @@ class BisFinderPanel extends PluginPanel
 
 		// Changing an option re-runs the search. Without this the result on screen silently belonged to the
 		// options as they were when Find was last pressed, so adding soul stacks looked like it did nothing.
+		// Unlike a fresh search, this keeps the current result on screen until the new one is ready, so the
+		// panel does not collapse to "Searching..." and jump while the numbers are recomputed.
 		searchDebounce.setRepeats(false);
-		searchDebounce.addActionListener(e -> search());
+		searchDebounce.addActionListener(e ->
+		{
+			if (selected != null)
+			{
+				plugin.findBestSetup(selected, settings());
+			}
+		});
 
 		for (JCheckBox box : new JCheckBox[]{onTask, inWilderness, vulnerability, accursed})
 		{
@@ -280,6 +305,7 @@ class BisFinderPanel extends PluginPanel
 		resultScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
 		resultScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
 		resultScroll.setBorder(BorderFactory.createEmptyBorder());
+		resultScroll.setVisible(false);
 
 		selectedName.setFont(FontManager.getRunescapeBoldFont());
 		selectedName.setForeground(ColorScheme.BRAND_ORANGE);
@@ -883,6 +909,18 @@ class BisFinderPanel extends PluginPanel
 		numbers.repaint();
 		setup.revalidate();
 		setup.repaint();
+	}
+
+	/** Shows or hides the monster list. When shown it is refreshed to match the current query first. */
+	private void showResults(boolean show)
+	{
+		if (show)
+		{
+			refreshResults();
+		}
+		resultScroll.setVisible(show);
+		resultScroll.revalidate();
+		resultScroll.repaint();
 	}
 
 	/** With no query the list shows every monster; names that start with the query rank first. */
