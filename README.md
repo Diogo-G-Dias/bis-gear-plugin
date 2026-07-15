@@ -13,7 +13,6 @@ the theoretical best-in-slot you do not own.
 - Only items you own are suggested: your bank (last time you opened it), your inventory and what you are
   wearing.
 - Slots that make no difference to DPS are filled with your best **prayer** gear instead, at zero DPS cost.
-- Special attacks are included, with spec max hit, accuracy, DPS contribution and energy cost.
 - Right-click any suggested item to stop it being suggested (persists between sessions).
 
 ## Options
@@ -28,14 +27,14 @@ states which of these it assumed.
 
 ## Where the numbers come from
 
-The combat engine is a Java port of the [OSRS Wiki DPS calculator](https://github.com/weirdgloop/osrs-dps-calc)
-by Weird Gloop — the same calculator that powers [dps.osrs.wiki](https://dps.osrs.wiki). It is not a
-reimplementation from the formulas: it is a translation of their code, and it is checked against their own
-test suite, including the 28 loadouts whose max hits they verified in game.
+The DPS engine is an independent, clean-room implementation written from publicly documented Old School
+RuneScape combat formulas — the OSRS Wiki's combat pages and Bitterkoekje's combat guide. Its output is
+built to match [dps.osrs.wiki](https://dps.osrs.wiki) for the setups it covers.
 
-Item and monster data comes from the same project and is fetched once from its published JSON, then cached
-on disk under `.runelite/bis-finder/`. Item IDs are real in-game IDs, so bank items map directly.
+Item and monster data comes from the OSRS Wiki, fetched once from its published JSON (distributed via the
+weirdgloop data CDN) and cached on disk under `.runelite/bis-finder/`. Item IDs are real in-game IDs, so
+bank items map directly.
 
 ## Licence
 
-GPL-3.0, because the ported calculator is GPL-3.0. See `LICENSE` and `NOTICE.md`.
+BSD 2-Clause. See `LICENSE` and `NOTICE.md`.

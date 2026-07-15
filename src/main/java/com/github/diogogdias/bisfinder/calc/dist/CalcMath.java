@@ -1,10 +1,10 @@
 package com.github.diogogdias.bisfinder.calc.dist;
 
 /**
- * Port of osrs-dps-calc's src/lib/Math.ts.
+ * Small integer/float helpers for the combat maths.
  *
- * All helpers mirror the TS source exactly: values are computed in double (floating point)
- * arithmetic and then truncated toward zero, matching JavaScript's Math.trunc.
+ * All helpers compute values in double (floating point) arithmetic and then truncate toward zero,
+ * matching JavaScript's Math.trunc.
  */
 public final class CalcMath
 {

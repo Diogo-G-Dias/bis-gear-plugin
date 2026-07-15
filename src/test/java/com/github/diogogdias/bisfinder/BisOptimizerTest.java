@@ -142,7 +142,7 @@ public class BisOptimizerTest
 
 	private double dpsOf(com.github.diogogdias.bisfinder.calc.model.Player player, Monster monster)
 	{
-		return new com.github.diogogdias.bisfinder.calc.PlayerVsNpcCalc(player, monster).getDps();
+		return com.github.diogogdias.bisfinder.engine.DpsEngine.dps(player, monster);
 	}
 
 	private static EquipmentPiece byName(String name)

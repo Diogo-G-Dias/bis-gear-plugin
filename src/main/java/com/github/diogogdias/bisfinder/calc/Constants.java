@@ -5,11 +5,10 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Port of the constants from osrs-dps-calc (src/lib/constants.ts) that BaseCalc, PlayerVsNPCCalc,
- * Equipment, MonsterScaling and the bolt distributions actually reference.
+ * Item- and monster-id groupings used to recognise game-specific behaviour, referenced by BaseCalc,
+ * PlayerVsNPCCalc, Equipment, MonsterScaling and the bolt distributions.
  *
- * <p>The TS source stores these as arrays and calls .includes(); sets are used here purely for lookup
- * speed - the semantics are identical.
+ * <p>Sets are used purely for lookup speed.
  */
 public final class Constants
 {

@@ -83,8 +83,7 @@ public class PrayerFillTest
 		// returned loadout instead.
 		for (BisOptimizer.Result result : results)
 		{
-			double actual = new com.github.diogogdias.bisfinder.calc.PlayerVsNpcCalc(
-				result.getPlayer(), bloat).getDps();
+			double actual = com.github.diogogdias.bisfinder.engine.DpsEngine.dps(result.getPlayer(), bloat);
 
 			Assert.assertEquals("the dps shown must be the dps of the setup shown, after the prayer fill",
 				actual, result.getDps(), 1e-9);

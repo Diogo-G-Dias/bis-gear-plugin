@@ -1,7 +1,6 @@
 package com.github.diogogdias.bisfinder;
 
 import com.github.diogogdias.bisfinder.calc.CalcData;
-import com.github.diogogdias.bisfinder.calc.PlayerVsNpcCalc;
 import com.github.diogogdias.bisfinder.calc.model.EquipmentPiece;
 import com.github.diogogdias.bisfinder.calc.model.Monster;
 import com.github.diogogdias.bisfinder.calc.model.Player;
@@ -83,8 +82,8 @@ public class SoulreaperTest
 	{
 		Monster bloat = monster("Pestilent Bloat", "Normal");
 
-		int noSouls = new PlayerVsNpcCalc(axe(bloat, 0), bloat).getMax();
-		int fullSouls = new PlayerVsNpcCalc(axe(bloat, 5), bloat).getMax();
+		int noSouls = com.github.diogogdias.bisfinder.engine.DpsEngine.estimate(axe(bloat, 0), bloat).getMaxHit();
+		int fullSouls = com.github.diogogdias.bisfinder.engine.DpsEngine.estimate(axe(bloat, 5), bloat).getMaxHit();
 
 		System.out.println(String.format("Soulreaper axe (o): max %d with no souls, %d with 5",
 			noSouls, fullSouls));

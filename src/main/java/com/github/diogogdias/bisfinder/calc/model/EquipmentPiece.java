@@ -35,8 +35,8 @@ public class EquipmentPiece
 	Offensive offensive;
 	Defensive defensive;
 	/**
-	 * Not present in equipment.json: per-item user choices (currently only the blowpipe's dart), ported
-	 * from EquipmentPiece.itemVars in osrs-dps-calc (src/types/Player.ts). Null when the item has none.
+	 * Not present in equipment.json: per-item user choices (currently only the blowpipe's dart). Null
+	 * when the item has none.
 	 */
 	@With
 	ItemVars itemVars;

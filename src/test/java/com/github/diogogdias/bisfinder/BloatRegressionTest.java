@@ -1,7 +1,6 @@
 package com.github.diogogdias.bisfinder;
 
 import com.github.diogogdias.bisfinder.calc.CalcData;
-import com.github.diogogdias.bisfinder.calc.PlayerVsNpcCalc;
 import com.github.diogogdias.bisfinder.calc.model.CombatStyleStance;
 import com.github.diogogdias.bisfinder.calc.model.CombatStyleType;
 import com.github.diogogdias.bisfinder.calc.model.EquipmentPiece;
@@ -131,7 +130,7 @@ public class BloatRegressionTest
 
 	private double dps(Player player, Monster monster)
 	{
-		return new PlayerVsNpcCalc(player, monster).getDps();
+		return com.github.diogogdias.bisfinder.engine.DpsEngine.dps(player, monster);
 	}
 
 	private static PlayerSkills maxed()

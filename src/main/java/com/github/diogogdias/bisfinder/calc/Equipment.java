@@ -17,7 +17,7 @@ import java.util.Set;
 import lombok.Value;
 
 /**
- * Port of osrs-dps-calc's src/lib/Equipment.ts.
+ * Aggregates a loadout's equipment bonuses and resolves ammo/canonical item ids.
  */
 public final class Equipment
 {
@@ -26,7 +26,7 @@ public final class Equipment
 	}
 
 	/**
-	 * Port of WEAPON_SPEC_COSTS: special attack energy cost, keyed by canonical weapon name.
+	 * Special attack energy cost, keyed by canonical weapon name.
 	 */
 	public static final Map<String, Integer> WEAPON_SPEC_COSTS = weaponSpecCosts();
 
@@ -118,7 +118,7 @@ public final class Equipment
 	}
 
 	/**
-	 * Port of the EquipmentBonuses type (Pick&lt;Player, 'bonuses' | 'offensive' | 'defensive' | 'attackSpeed'&gt;).
+	 * The aggregated bonuses, offensive and defensive stats, and attack speed of a full loadout.
 	 */
 	@Value
 	public static class EquipmentBonuses

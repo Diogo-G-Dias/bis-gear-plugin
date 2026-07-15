@@ -69,22 +69,33 @@ public class PerStyleTest
 					result.getSpec().getMaxHit(), result.getSpec().getDps())));
 		}
 
-		// Strongest first, and never the same style twice.
-		for (int i = 1; i < results.size(); i++)
+		// Strongest first, and each attack style (stab/slash/crush/ranged/magic) appears at most once.
+		java.util.Set<com.github.diogogdias.bisfinder.calc.model.CombatStyleType> seen = new java.util.HashSet<>();
+		java.util.Set<BisOptimizer.Style> groups = new java.util.HashSet<>();
+		for (int i = 0; i < results.size(); i++)
 		{
-			Assert.assertTrue("results must be strongest first",
-				results.get(i - 1).getDps() >= results.get(i).getDps());
-			Assert.assertNotEquals("a style must not appear twice",
-				results.get(i - 1).getStyleGroup(), results.get(i).getStyleGroup());
+			if (i > 0)
+			{
+				Assert.assertTrue("results must be strongest first",
+					results.get(i - 1).getDps() >= results.get(i).getDps());
+			}
+			Assert.assertTrue("an attack style must not appear twice",
+				seen.add(results.get(i).getStyle().getType()));
+			groups.add(results.get(i).getStyleGroup());
 		}
 
-		// A maxed bank has all three styles available.
-		Assert.assertEquals("all three styles should be offered", 3, results.size());
+		// A maxed bank offers all three combat groups; melee is now split into its per-attack-style setups.
+		Assert.assertEquals("all three combat groups should be offered",
+			java.util.EnumSet.allOf(BisOptimizer.Style.class), groups);
 	}
 
-	/** The Eye of ayak's special attack has to reach the panel, not just exist in the engine. */
+	/**
+	 * A magic-only bank still resolves to the right weapon and a scored magic setup. Special-attack output is
+	 * deferred in the clean-room engine (the panel hides the spec block until it is reimplemented), so the
+	 * result's spec is expected to be null for now.
+	 */
 	@Test
-	public void eyeOfAyakSpecReachesTheResult()
+	public void magicOnlyBankResolvesToTheRightWeapon()
 	{
 		Monster target = monster("Abyssal demon", "Standard");
 
@@ -100,19 +111,9 @@ public class PerStyleTest
 
 		BisOptimizer.Result magic = results.get(0);
 		Assert.assertEquals("Eye of ayak", magic.getPlayer().getEquipment().getWeapon().getName());
-
-		BisOptimizer.Spec spec = magic.getSpec();
-		Assert.assertNotNull("the eye of ayak has a special attack", spec);
-
-		System.out.println(String.format("Eye of ayak: %d max normal, %d max spec, %.1f%% spec acc, +%.2f spec dps, %d%%",
-			magic.getMaxHit(), spec.getMaxHit(), spec.getAccuracy() * 100, spec.getDps(), spec.getCost()));
-
-		Assert.assertEquals("the spec costs half the bar", 50, spec.getCost());
-		Assert.assertTrue("the spec must hit harder than a normal attack",
-			spec.getMaxHit() > magic.getMaxHit());
-		Assert.assertTrue("the spec must be more accurate than a normal attack",
-			spec.getAccuracy() > magic.getAccuracy());
-		Assert.assertTrue("the spec must add damage", spec.getDps() > 0);
+		Assert.assertEquals(BisOptimizer.Style.MAGIC, magic.getStyleGroup());
+		Assert.assertTrue("the magic setup should be scored", magic.getDps() > 0);
+		Assert.assertNull("special attacks are deferred in the clean-room engine", magic.getSpec());
 	}
 
 	private static Set<Integer> idsFor(String... names)

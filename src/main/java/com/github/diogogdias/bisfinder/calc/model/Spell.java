@@ -6,7 +6,7 @@ import java.util.Locale;
 import lombok.Value;
 
 /**
- * Ported from osrs-dps-calc (src/types/Spell.ts). Deserialised from cdn/json/spells.json.
+ * Mirrors the spells.json schema from the OSRS Wiki DPS data. Deserialised from cdn/json/spells.json.
  */
 @Value
 public class Spell

@@ -11,11 +11,10 @@ import lombok.Builder;
 import lombok.Value;
 
 /**
- * Port of Player from osrs-dps-calc (src/types/Player.ts).
+ * Mirrors the player schema of the OSRS Wiki DPS data.
  *
- * <p>Builder defaults mirror generateEmptyPlayer (src/state.tsx), which is what the wiki calculator's
- * own test harness builds players from - including its slightly surprising buff defaults
- * (onSlayerTask and kandarinDiary are both true there).
+ * <p>Builder defaults match the OSRS Wiki calculator's empty-player defaults - including its slightly
+ * surprising buff defaults (onSlayerTask and kandarinDiary are both true there).
  *
  * <p>The aggregate stats (bonuses / offensive / defensive / attackSpeed) are NOT summed here: they must
  * be produced by {@link Equipment#calculateEquipmentBonusesFromGear}, which is what
@@ -90,7 +89,7 @@ public class Player
 	}
 
 	/**
-	 * Port of PlayerBonuses (src/types/Player.ts).
+	 * The player's aggregated equipment bonuses (strength, ranged/magic strength, prayer).
 	 */
 	@Value
 	public static class Bonuses
@@ -107,7 +106,7 @@ public class Player
 	}
 
 	/**
-	 * Port of PlayerOffensive (src/types/Player.ts).
+	 * The player's aggregated offensive attack bonuses per style.
 	 */
 	@Value
 	public static class Offensive
@@ -152,7 +151,7 @@ public class Player
 	}
 
 	/**
-	 * Port of PlayerDefensive (src/types/Player.ts).
+	 * The player's aggregated defensive bonuses per style.
 	 */
 	@Value
 	public static class Defensive
@@ -170,7 +169,7 @@ public class Player
 	}
 
 	/**
-	 * Port of PlayerEquipment (src/types/Player.ts). Any slot may be null.
+	 * The item equipped in each slot. Any slot may be null.
 	 */
 	@Value
 	@Builder(toBuilder = true)

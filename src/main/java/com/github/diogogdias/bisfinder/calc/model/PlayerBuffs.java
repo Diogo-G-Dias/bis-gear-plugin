@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Value;
 
 /**
- * Ported from osrs-dps-calc (src/types/Player.ts).
+ * Mirrors the player buffs in the OSRS Wiki DPS data.
  *
  * <p>Only the buffs the calculator itself reads are kept; the UI-only fields are dropped.
  */

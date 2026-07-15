@@ -1,7 +1,7 @@
 package com.github.diogogdias.bisfinder.calc.model;
 
 /**
- * Ported from osrs-dps-calc (src/types/PlayerCombatStyle.ts).
+ * The combat-style attack types from the OSRS Wiki DPS data.
  *
  * <p>These map directly onto the monster's defensive bonuses.
  */

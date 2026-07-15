@@ -87,6 +87,9 @@ public class BisFinderPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
+		// Score setups with the new BSD-2 engine.
+		BisOptimizer.scorer = com.github.diogogdias.bisfinder.engine.DpsEngine::dps;
+
 		imageExecutor = Executors.newSingleThreadExecutor();
 		panel = new BisFinderPanel(this, itemManager);
 		navButton = NavigationButton.builder()

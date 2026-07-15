@@ -1,7 +1,6 @@
 package com.github.diogogdias.bisfinder;
 
 import com.github.diogogdias.bisfinder.calc.CalcData;
-import com.github.diogogdias.bisfinder.calc.PlayerVsNpcCalc;
 import com.github.diogogdias.bisfinder.calc.model.CombatStyleStance;
 import com.github.diogogdias.bisfinder.calc.model.CombatStyleType;
 import com.github.diogogdias.bisfinder.calc.model.EquipmentPiece;
@@ -73,11 +72,12 @@ public class OathplateDiagTest
 		for (String[] combo : combos)
 		{
 			Player player = setup(bloat, combo[0], combo[1]);
-			PlayerVsNpcCalc calc = new PlayerVsNpcCalc(player, bloat);
-			double dps = calc.getDps();
+			com.github.diogogdias.bisfinder.engine.DpsEngine.Estimate estimate =
+				com.github.diogogdias.bisfinder.engine.DpsEngine.estimate(player, bloat);
+			double dps = estimate.getDps();
 
 			System.out.println(String.format("%-16s + %-16s -> %.4f dps (max %d, acc %.2f%%)",
-				combo[0], combo[1], dps, calc.getMax(), calc.getHitChance() * 100));
+				combo[0], combo[1], dps, estimate.getMaxHit(), estimate.getAccuracy() * 100));
 
 			if (dps > best)
 			{

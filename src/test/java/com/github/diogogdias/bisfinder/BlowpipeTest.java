@@ -1,7 +1,6 @@
 package com.github.diogogdias.bisfinder;
 
 import com.github.diogogdias.bisfinder.calc.CalcData;
-import com.github.diogogdias.bisfinder.calc.PlayerVsNpcCalc;
 import com.github.diogogdias.bisfinder.calc.model.EquipmentPiece;
 import com.github.diogogdias.bisfinder.calc.model.Monster;
 import com.github.diogogdias.bisfinder.calc.model.Player;
@@ -117,7 +116,7 @@ public class BlowpipeTest
 
 	private double dps(Player player)
 	{
-		return new PlayerVsNpcCalc(player, monster("Abyssal demon", "Standard")).getDps();
+		return com.github.diogogdias.bisfinder.engine.DpsEngine.dps(player, monster("Abyssal demon", "Standard"));
 	}
 
 	private static Set<Integer> ids(String... names)

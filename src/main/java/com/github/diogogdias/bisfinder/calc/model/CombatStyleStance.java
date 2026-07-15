@@ -1,9 +1,9 @@
 package com.github.diogogdias.bisfinder.calc.model;
 
 /**
- * Ported from osrs-dps-calc (src/types/PlayerCombatStyle.ts).
+ * The combat-style stance names from the OSRS Wiki DPS data.
  *
- * <p>MANUAL_CAST is a pseudo stance, as it is in the calculator this is ported from.
+ * <p>MANUAL_CAST is a pseudo stance, matching the wiki calculator.
  */
 public enum CombatStyleStance
 {

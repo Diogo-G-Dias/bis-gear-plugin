@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Ported from osrs-dps-calc (src/enums/Prayer.ts).
+ * Combat prayers and the multipliers they apply.
  *
  * <p>Factors are given with a denominator of 100 so that additive prayers work out correctly.
  */

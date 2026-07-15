@@ -3,7 +3,7 @@ package com.github.diogogdias.bisfinder.calc.dist;
 import java.util.Objects;
 
 /**
- * Port of the Factor tuple type from osrs-dps-calc (src/lib/Math.ts): [factor, divisor].
+ * An integer ratio (numerator/divisor) applied with truncation.
  */
 public final class Factor
 {

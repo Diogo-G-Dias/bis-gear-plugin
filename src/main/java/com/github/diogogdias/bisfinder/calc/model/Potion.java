@@ -1,7 +1,7 @@
 package com.github.diogogdias.bisfinder.calc.model;
 
 /**
- * Ported from osrs-dps-calc (src/enums/Potion.ts and the PotionMap in src/utils.ts).
+ * Combat-boosting potions and the level boosts they grant.
  *
  * <p>Only the potions that raise a combat level are here. Each returns the boost to ADD to the player's
  * base levels, which is exactly what {@link PlayerSkills} boosts are.

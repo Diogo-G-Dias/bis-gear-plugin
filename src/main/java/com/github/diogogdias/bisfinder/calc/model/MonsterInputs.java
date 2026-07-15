@@ -4,11 +4,10 @@ import lombok.Builder;
 import lombok.Value;
 
 /**
- * Port of Monster['inputs'] from osrs-dps-calc (src/types/Monster.ts).
+ * Mirrors the per-monster inputs in the OSRS Wiki DPS data (the inputs object of monsters.json).
  *
  * <p>Fields that users have control over in the UI, which may affect buff applicability, monster
- * scaling, etc. Defaults mirror INITIAL_MONSTER_INPUTS (src/lib/Monsters.ts), which is what the wiki
- * calculator's own test harness uses.
+ * scaling, etc. Defaults match the OSRS Wiki calculator's neutral starting inputs.
  */
 @Value
 @Builder(toBuilder = true)
@@ -41,8 +40,7 @@ public class MonsterInputs
 	/**
 	 * The monster's current HP, for effects like Ruby bolt (e), or Vardorvis defence.
 	 *
-	 * <p>150 matches INITIAL_MONSTER_INPUTS; BaseCalc.sanitizeInputs clamps it to the monster's max hp
-	 * when it exceeds it.
+	 * <p>Defaults to 150; callers clamp it to the monster's max hp when it exceeds it.
 	 */
 	@Builder.Default
 	int monsterCurrentHp = 150;

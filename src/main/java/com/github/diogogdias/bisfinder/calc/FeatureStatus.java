@@ -1,7 +1,7 @@
 package com.github.diogogdias.bisfinder.calc;
 
 /**
- * Port of FeatureStatus (src/utils.ts).
+ * Marks how completely a given game feature is modelled by the calculator.
  */
 public enum FeatureStatus
 {

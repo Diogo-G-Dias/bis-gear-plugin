@@ -109,6 +109,7 @@ class BisFinderPanel extends PluginPanel
 	private final JPanel numbers = new JPanel(new GridLayout(0, 2, 4, 2));
 	private final JPanel setup = new JPanel();
 	private final JLabel bankSummary = new JLabel();
+	private final JLabel version = new JLabel();
 
 	private List<Monster> monsters = new ArrayList<>();
 	private Monster selected;
@@ -331,7 +332,37 @@ class BisFinderPanel extends PluginPanel
 		content.add(bankSummary);
 		content.add(excluded);
 
+		version.setFont(FontManager.getRunescapeSmallFont());
+		version.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
+		version.setAlignmentX(Component.LEFT_ALIGNMENT);
+		version.setBorder(BorderFactory.createEmptyBorder(10, 0, 2, 0));
+		version.setText(buildLabel());
+		content.add(Box.createVerticalStrut(6));
+		content.add(version);
+
 		add(content, BorderLayout.NORTH);
+	}
+
+	/** The dev build number the client was launched with, read from the resource gradle stamps on each run. */
+	private static String buildLabel()
+	{
+		try (java.io.InputStream in = BisFinderPanel.class.getResourceAsStream("/bisfinder-build.txt"))
+		{
+			if (in != null)
+			{
+				String number = new java.io.BufferedReader(
+					new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)).readLine();
+				if (number != null && !number.trim().isEmpty())
+				{
+					return "BiS Gear — dev build #" + number.trim();
+				}
+			}
+		}
+		catch (java.io.IOException ignored)
+		{
+			// Fall through to the unversioned label.
+		}
+		return "BiS Gear — dev";
 	}
 
 	/**
@@ -625,20 +656,58 @@ class BisFinderPanel extends PluginPanel
 		// live in the tab's first stat instead.
 		tabs.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
+		// The melee attack styles (stab/slash/crush) share one top-level "Melee" tab and split into sub-tabs
+		// inside it, so which weapon wins each style - e.g. a stab fang vs a slash blade - is visible at a glance.
+		List<BisOptimizer.Result> meleeResults = new ArrayList<>();
 		for (BisOptimizer.Result result : results)
 		{
-			JPanel body = new JPanel();
-			body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
-			body.setBackground(ColorScheme.DARK_GRAY_COLOR);
-			body.setBorder(BorderFactory.createEmptyBorder(6, 2, 2, 2));
-			fill(body, result);
+			if (result.getStyleGroup() == BisOptimizer.Style.MELEE)
+			{
+				meleeResults.add(result);
+			}
+		}
 
-			tabs.addTab(styleName(result), body);
+		boolean meleeAdded = false;
+		for (BisOptimizer.Result result : results)
+		{
+			if (result.getStyleGroup() == BisOptimizer.Style.MELEE && meleeResults.size() > 1)
+			{
+				if (meleeAdded)
+				{
+					continue;
+				}
+				meleeAdded = true;
 
-			double behind = winner.getDps() - result.getDps();
-			tabs.setToolTipTextAt(tabs.getTabCount() - 1, result == winner
-				? String.format("%.2f dps - the best you can do here", result.getDps())
-				: String.format("%.2f dps - %.2f behind the best", result.getDps(), behind));
+				JTabbedPane meleeTabs = new JTabbedPane();
+				meleeTabs.setFont(FontManager.getRunescapeSmallFont());
+				meleeTabs.setBackground(ColorScheme.DARK_GRAY_COLOR);
+				meleeTabs.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+				meleeTabs.setFocusable(false);
+				meleeTabs.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+				for (BisOptimizer.Result meleeResult : meleeResults)
+				{
+					meleeTabs.addTab(meleeStyleName(meleeResult), bodyFor(meleeResult));
+					double behind = winner.getDps() - meleeResult.getDps();
+					meleeTabs.setToolTipTextAt(meleeTabs.getTabCount() - 1, meleeResult == winner
+						? String.format("%.2f dps - the best you can do here", meleeResult.getDps())
+						: String.format("%.2f dps - %.2f behind the best", meleeResult.getDps(), behind));
+				}
+
+				JPanel wrapper = new JPanel(new BorderLayout());
+				wrapper.setBackground(ColorScheme.DARK_GRAY_COLOR);
+				wrapper.add(meleeTabs, BorderLayout.CENTER);
+				tabs.addTab("Melee", wrapper);
+				tabs.setToolTipTextAt(tabs.getTabCount() - 1,
+					String.format("Best melee: %.2f dps", meleeResults.get(0).getDps()));
+			}
+			else
+			{
+				tabs.addTab(styleName(result), bodyFor(result));
+				double behind = winner.getDps() - result.getDps();
+				tabs.setToolTipTextAt(tabs.getTabCount() - 1, result == winner
+					? String.format("%.2f dps - the best you can do here", result.getDps())
+					: String.format("%.2f dps - %.2f behind the best", result.getDps(), behind));
+			}
 		}
 
 		setup.add(tabs);
@@ -702,6 +771,24 @@ class BisFinderPanel extends PluginPanel
 			default:
 				return "Magic";
 		}
+	}
+
+	/** "Stab", "Slash" or "Crush" for a melee result's attack style. */
+	private static String meleeStyleName(BisOptimizer.Result result)
+	{
+		String type = result.getStyle().getType().name();
+		return type.charAt(0) + type.substring(1).toLowerCase();
+	}
+
+	/** A scrollable body panel holding one setup's numbers and gear. */
+	private JPanel bodyFor(BisOptimizer.Result result)
+	{
+		JPanel body = new JPanel();
+		body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+		body.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		body.setBorder(BorderFactory.createEmptyBorder(6, 2, 2, 2));
+		fill(body, result);
+		return body;
 	}
 
 	/** The numbers and the gear for one style's setup. */

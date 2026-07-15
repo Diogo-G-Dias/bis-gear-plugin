@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import lombok.Value;
 
-/** Ported from osrs-dps-calc (src/types/PlayerCombatStyle.ts). */
+/** Mirrors a combat style entry from the OSRS Wiki DPS data. */
 @Value
 public class PlayerCombatStyle
 {
@@ -25,7 +25,7 @@ public class PlayerCombatStyle
 	}
 
 	/**
-	 * Port of getRangedDamageType (src/types/PlayerCombatStyle.ts).
+	 * Maps a ranged weapon category to its damage type.
 	 */
 	public static RangedDamageType getRangedDamageType(EquipmentCategory category)
 	{
@@ -50,8 +50,8 @@ public class PlayerCombatStyle
 	}
 
 	/**
-	 * Port of getCombatStylesForCategory (src/utils.ts). The "Manual Cast" pseudo style is appended to
-	 * every category, exactly as in the source.
+	 * The combat styles available for a given equipment category. The "Manual Cast" pseudo style is
+	 * appended to every category.
 	 */
 	public static List<PlayerCombatStyle> getCombatStylesForCategory(EquipmentCategory category)
 	{

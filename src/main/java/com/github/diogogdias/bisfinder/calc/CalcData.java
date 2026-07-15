@@ -13,9 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Holds the datasets that osrs-dps-calc imports at module level (equipment.json in src/lib/Equipment.ts,
- * spells.json in src/types/Spell.ts, equipment_aliases.json in src/lib/EquipmentAliases.ts) and which the
- * ported calculator therefore needs global access to.
+ * Holds the shared game-data datasets (the equipment list, the spell list and the equipment alias map)
+ * that the calculator needs global access to.
  *
  * <p>The equipment and spell lists are supplied by the caller (see WikiDataClient); the alias map ships
  * with the plugin as a resource, because the calculator cannot canonicalise item IDs without it.

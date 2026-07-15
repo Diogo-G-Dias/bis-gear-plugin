@@ -4,7 +4,7 @@ import lombok.Value;
 import lombok.With;
 
 /**
- * Ported from osrs-dps-calc (src/types/Player.ts).
+ * Mirrors the player skills in the OSRS Wiki DPS data.
  *
  * <p>Used both for the player's base levels and for the boosts added on top of them, which is why
  * the values may be negative.

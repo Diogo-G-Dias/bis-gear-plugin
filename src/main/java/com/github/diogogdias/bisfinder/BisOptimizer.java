@@ -2,7 +2,7 @@ package com.github.diogogdias.bisfinder;
 
 import com.github.diogogdias.bisfinder.calc.Constants;
 import com.github.diogogdias.bisfinder.calc.Equipment;
-import com.github.diogogdias.bisfinder.calc.PlayerVsNpcCalc;
+import com.github.diogogdias.bisfinder.engine.DpsEngine;
 import com.github.diogogdias.bisfinder.calc.model.CombatStyleType;
 import com.github.diogogdias.bisfinder.calc.model.EquipmentPiece;
 import com.github.diogogdias.bisfinder.calc.model.Monster;
@@ -71,7 +71,7 @@ public class BisOptimizer
 
 	/**
 	 * Gauntlet and Corrupted Gauntlet gear, which is destroyed on leaving the Gauntlet and so can never be
-	 * in a bank. Item ids from osrs-dps-calc (GAUNTLET_EQUIPMENT_IDS, CORRUPTED_GAUNTLET_EQUIPMENT_IDS).
+	 * in a bank. These item ids are excluded from the search.
 	 */
 	private static final Set<Integer> UNBANKABLE = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
 		23861, 23862, 23863, 23864, 23886, 23887, 23888, 23889, 23890, 23891, 23892, 23893, 23894, 23895,
@@ -191,9 +191,10 @@ public class BisOptimizer
 			.filter(piece -> !"weapon".equals(piece.getSlot()))
 			.collect(Collectors.groupingBy(EquipmentPiece::getSlot));
 
-		// Stab, slash and crush are one style to a player choosing what to bring, so they compete together.
-		Map<Style, Player> best = new EnumMap<>(Style.class);
-		Map<Style, Double> bestDps = new EnumMap<>(Style.class);
+		// Keyed by attack type (stab/slash/crush/ranged/magic) so the melee styles are reported separately -
+		// the sidebar shows the best stab, slash and crush setup, since which one wins shifts by target.
+		Map<CombatStyleType, Player> best = new EnumMap<>(CombatStyleType.class);
+		Map<CombatStyleType, Double> bestDps = new EnumMap<>(CombatStyleType.class);
 
 		for (Seed seed : seeds(armaments, bySlot))
 		{
@@ -204,43 +205,32 @@ public class BisOptimizer
 			}
 
 			double dps = dps(player, monster);
-			Style style = Style.of(player.getStyle().getType());
+			CombatStyleType key = player.getStyle().getType();
 
-			if (dps > 0 && dps > bestDps.getOrDefault(style, 0.0))
+			if (dps > 0 && dps > bestDps.getOrDefault(key, 0.0))
 			{
-				bestDps.put(style, dps);
-				best.put(style, player);
+				bestDps.put(key, dps);
+				best.put(key, player);
 			}
 		}
 
 		List<Result> results = new ArrayList<>();
-		for (Map.Entry<Style, Player> entry : best.entrySet())
+		for (Map.Entry<CombatStyleType, Player> entry : best.entrySet())
 		{
 			Player climbed = improveInPairs(entry.getValue(), bySlot, monster);
 			Player player = fillWithPrayerGear(climbed, bySlot, monster);
-			PlayerVsNpcCalc calc = new PlayerVsNpcCalc(player, monster);
 			CombatStyleType type = player.getStyle().getType();
 
-			results.add(new Result(player, bestDps.get(entry.getKey()), calc.getMax(), calc.getHitChance(),
+			// Recompute on the final gear: improveInPairs/fillWithPrayerGear change the setup after the
+			// climb, so the climb's stored numbers are stale for the loadout actually shown.
+			DpsEngine.Estimate estimate = DpsEngine.estimate(player, monster);
+			results.add(new Result(player, estimate.getDps(), estimate.getMaxHit(), estimate.getAccuracy(),
 				player.getStyle(), prayers(type).isEmpty() ? null : prayers(type).get(0), potion(type),
-				entry.getKey(), spec(calc), player.getBonuses().getPrayer()));
+				Style.of(type), null, player.getBonuses().getPrayer()));
 		}
 
 		results.sort(Comparator.comparingDouble(Result::getDps).reversed());
 		return results;
-	}
-
-	/** The weapon's special attack, if the calculator supports it. */
-	private Spec spec(PlayerVsNpcCalc calc)
-	{
-		PlayerVsNpcCalc specCalc = calc.getSpecCalc();
-		Integer cost = calc.getSpecCost();
-		if (specCalc == null || cost == null)
-		{
-			return null;
-		}
-
-		return new Spec(specCalc.getMax(), specCalc.getHitChance(), calc.getSpecDps(), cost);
 	}
 
 	/**
@@ -351,9 +341,17 @@ public class BisOptimizer
 			int bestPrayer = worn == null ? 0 : worn.getBonuses().getPrayer();
 			Player best = current;
 
+			int wornOffence = offensiveStrength(worn);
 			for (EquipmentPiece candidate : bySlot.getOrDefault(slot, Collections.emptyList()))
 			{
 				if (candidate.getBonuses().getPrayer() <= bestPrayer)
+				{
+					continue;
+				}
+
+				// A prayer upgrade must not sacrifice offensive strength - keep Torva over a faceguard even
+				// when the max hit ties, rather than trading damage headroom for prayer.
+				if (offensiveStrength(candidate) < wornOffence)
 				{
 					continue;
 				}
@@ -383,6 +381,16 @@ public class BisOptimizer
 		}
 
 		return current;
+	}
+
+	/** A piece's total offensive strength (melee/ranged/magic), used to break DPS ties toward damage gear. */
+	private static int offensiveStrength(EquipmentPiece piece)
+	{
+		if (piece == null)
+		{
+			return 0;
+		}
+		return piece.getBonuses().getStr() + piece.getBonuses().getRangedStr() + piece.getBonuses().getMagicStr();
 	}
 
 	/** The three styles a player chooses between; the melee attack types are not separate choices. */
@@ -889,6 +897,10 @@ public class BisOptimizer
 		return options.getPotion() != null ? options.getPotion() : Potion.best(type);
 	}
 
+	/** How a candidate setup is scored: the clean-room DPS engine. */
+	public static java.util.function.ToDoubleBiFunction<Player, Monster> scorer =
+		com.github.diogogdias.bisfinder.engine.DpsEngine::dps;
+
 	private double dps(Player player, Monster monster)
 	{
 		if (player == null)
@@ -896,7 +908,7 @@ public class BisOptimizer
 			return 0;
 		}
 
-		double dps = new PlayerVsNpcCalc(player, monster).getDps();
+		double dps = scorer.applyAsDouble(player, monster);
 		return Double.isFinite(dps) ? dps : 0;
 	}
 

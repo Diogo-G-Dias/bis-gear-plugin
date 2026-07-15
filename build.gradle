@@ -35,10 +35,33 @@ tasks.withType(JavaCompile).configureEach {
 	options.release.set(11)
 }
 
+// A build counter bumped on every dev-client launch, so the sidebar shows which build is actually running
+// and a stale window is obvious at a glance. Persisted in build-number.txt and written into the resources the
+// client reads at startup.
+def buildNumberFile = file('build-number.txt')
+
+tasks.register('bumpBuildNumber') {
+	doLast {
+		int next = (buildNumberFile.exists() ? buildNumberFile.text.trim() as Integer : 0) + 1
+		buildNumberFile.text = "$next"
+		def outDir = sourceSets.main.output.resourcesDir
+		outDir.mkdirs()
+		new File(outDir, 'bisfinder-build.txt').text = "$next"
+		logger.lifecycle("BiS Gear dev build #$next")
+	}
+}
+
 tasks.register('run', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = pluginMainClass
 
 	jvmArgs "-ea"
 	args "--developer-mode", "--debug"
+
+	// Bump after resources are processed so the fresh number is not overwritten by the copy.
+	dependsOn 'processResources', 'bumpBuildNumber'
+}
+
+tasks.named('bumpBuildNumber') {
+	mustRunAfter 'processResources'
 }

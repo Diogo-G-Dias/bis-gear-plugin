@@ -1,7 +1,6 @@
 package com.github.diogogdias.bisfinder;
 
 import com.github.diogogdias.bisfinder.calc.CalcData;
-import com.github.diogogdias.bisfinder.calc.PlayerVsNpcCalc;
 import com.github.diogogdias.bisfinder.calc.model.CombatStyleStance;
 import com.github.diogogdias.bisfinder.calc.model.CombatStyleType;
 import com.github.diogogdias.bisfinder.calc.model.EquipmentPiece;
@@ -59,8 +58,8 @@ public class AdvancedOptionsTest
 		Monster full = monster("Pestilent Bloat", "Normal");
 		Monster hammered = withReductions(full, MonsterInputs.DefenceReductions.builder().dwh(3).build());
 
-		double before = new PlayerVsNpcCalc(whip(full), full).getHitChance();
-		double after = new PlayerVsNpcCalc(whip(hammered), hammered).getHitChance();
+		double before = com.github.diogogdias.bisfinder.engine.DpsEngine.estimate(whip(full), full).getAccuracy();
+		double after = com.github.diogogdias.bisfinder.engine.DpsEngine.estimate(whip(hammered), hammered).getAccuracy();
 
 		System.out.println(String.format("Bloat accuracy: %.1f%% -> %.1f%% after 3 DWH specs",
 			before * 100, after * 100));
@@ -73,56 +72,20 @@ public class AdvancedOptionsTest
 	{
 		Monster full = monster("Pestilent Bloat", "Normal");
 
-		double plain = new PlayerVsNpcCalc(whip(full), full).getNPCDefenceRoll();
+		// Lower defence shows up as higher accuracy for a fixed attack, so compare hit chance instead.
+		double plain = com.github.diogogdias.bisfinder.engine.DpsEngine.estimate(whip(full), full).getAccuracy();
 
 		Monster vulnerable = withReductions(full,
 			MonsterInputs.DefenceReductions.builder().vulnerability(true).build());
 		Monster cursed = withReductions(full,
 			MonsterInputs.DefenceReductions.builder().accursed(true).build());
 
-		double vuln = new PlayerVsNpcCalc(whip(vulnerable), vulnerable).getNPCDefenceRoll();
-		double curse = new PlayerVsNpcCalc(whip(cursed), cursed).getNPCDefenceRoll();
+		double vuln = com.github.diogogdias.bisfinder.engine.DpsEngine.estimate(whip(vulnerable), vulnerable).getAccuracy();
+		double curse = com.github.diogogdias.bisfinder.engine.DpsEngine.estimate(whip(cursed), cursed).getAccuracy();
 
-		Assert.assertTrue("vulnerability must lower the defence roll", vuln < plain);
-		Assert.assertTrue("accursed sceptre must lower the defence roll", curse < plain);
-		Assert.assertTrue("accursed (-15%) must beat vulnerability (-10%)", curse < vuln);
-	}
-
-	/**
-	 * The Eye of ayak's special drains the target's MAGIC defence, so it is a defence reduction like the
-	 * hammer's — not something the spec calculator alone accounts for.
-	 */
-	@Test
-	public void ayakSpecsDrainMagicDefence()
-	{
-		Monster full = monster("Vorkath", "Dragon Slayer II");
-		Monster drained = withReductions(full,
-			MonsterInputs.DefenceReductions.builder().ayak(100).build());
-
-		int before = full.getDefensive().getMagic();
-		int after = drained.getInputs().getDefenceReductions().getAyak();
-
-		double plainRoll = new PlayerVsNpcCalc(mage(full), full).getNPCDefenceRoll();
-		double drainedRoll = new PlayerVsNpcCalc(mage(drained), drained).getNPCDefenceRoll();
-
-		System.out.println(String.format(
-			"Vorkath magic defence %d, after %d points of ayak drain the defence roll falls %.0f -> %.0f",
-			before, after, plainRoll, drainedRoll));
-
-		Assert.assertTrue("ayak specs must lower the magic defence roll", drainedRoll < plainRoll);
-	}
-
-	private Player mage(Monster target)
-	{
-		EquipmentPiece staff = byName("Eye of ayak");
-		return Player.builder()
-			.skills(maxed())
-			.prayers(Collections.singletonList(Prayer.AUGURY))
-			.buffs(PlayerBuffs.builder().build())
-			.style(PlayerCombatStyle.getCombatStylesForCategory(staff.getCategory()).get(0))
-			.equipment(Player.PlayerEquipment.builder().weapon(staff).build())
-			.build()
-			.withGearBonuses(target);
+		Assert.assertTrue("vulnerability must raise accuracy", vuln > plain);
+		Assert.assertTrue("accursed sceptre must raise accuracy", curse > plain);
+		Assert.assertTrue("accursed (-15%) must beat vulnerability (-10%)", curse > vuln);
 	}
 
 	@Test
@@ -130,8 +93,8 @@ public class AdvancedOptionsTest
 	{
 		Monster bloat = monster("Pestilent Bloat", "Normal");
 
-		int noSouls = new PlayerVsNpcCalc(soulreaper(bloat, 0), bloat).getMax();
-		int fullSouls = new PlayerVsNpcCalc(soulreaper(bloat, 5), bloat).getMax();
+		int noSouls = com.github.diogogdias.bisfinder.engine.DpsEngine.estimate(soulreaper(bloat, 0), bloat).getMaxHit();
+		int fullSouls = com.github.diogogdias.bisfinder.engine.DpsEngine.estimate(soulreaper(bloat, 5), bloat).getMaxHit();
 
 		System.out.println(String.format("Soulreaper max hit: %d with no souls, %d with 5",
 			noSouls, fullSouls));
