@@ -39,6 +39,18 @@ public class SearchSettings
 	@Builder.Default
 	int soulreaperStacks = 0;
 
+	/** Raid party size, 1-100 (Chambers of Xeric / Theatre of Blood scale off this). */
+	@Builder.Default
+	int partySize = 1;
+
+	/** Whether a Chambers of Xeric target is in Challenge Mode. */
+	@Builder.Default
+	boolean coxChallengeMode = false;
+
+	/** Tombs of Amascut raid level, 0-600 (scales the target's defence). */
+	@Builder.Default
+	int toaInvocationLevel = 0;
+
 	@Builder.Default
 	MonsterInputs.DefenceReductions defenceReductions = MonsterInputs.DefenceReductions.builder().build();
 

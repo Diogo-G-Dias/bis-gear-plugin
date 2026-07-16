@@ -18,10 +18,13 @@ import java.awt.image.BufferedImage;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -231,6 +234,9 @@ class BisFinderPanel extends PluginPanel
 				selectedName.setText(label(picked));
 				findButton.setEnabled(true);
 				monsterImage.setIcon(null);
+				// A target that only exists in the Wilderness is always fought there, so start the box ticked -
+				// and untick it for one that is not, so a tick does not follow the player to the next target.
+				inWilderness.setSelected(isWildernessOnly(picked));
 				clearResult();
 				showResults(false);
 				plugin.loadMonsterImage(picked);
@@ -536,6 +542,31 @@ class BisFinderPanel extends PluginPanel
 			.soulreaperStacks(value(soulreaper))
 			.defenceReductions(reductions)
 			.build();
+	}
+
+	/**
+	 * Targets that exist nowhere but the Wilderness, so the Wilderness box is ticked for them by default.
+	 * There is no location in the wiki data to read this from, so it is a list.
+	 *
+	 * <p>Deliberately only the unambiguous ones. A monster that is merely *also* found in the Wilderness
+	 * (green dragons, chaos druids, the Wilderness slayer cave's demons) is left to the player to tick,
+	 * because ticking it wrongly would inflate the DPS of a revenant-ether weapon rather than just omit it.
+	 * The King Black Dragon is a Wilderness boss whose lair is not itself in the Wilderness, so it is out.
+	 */
+	private static final Set<String> WILDERNESS_ONLY = new HashSet<>(Arrays.asList(
+		"Callisto", "Artio",
+		"Venenatis", "Spindel",
+		"Vet'ion", "Calvar'ion",
+		"Chaos Elemental", "Chaos Fanatic", "Crazy archaeologist",
+		"Lava dragon", "Elder Chaos druid", "Mammoth"));
+
+	/** Scorpia and her spawns, and every revenant, share a name prefix rather than being listed one by one. */
+	static boolean isWildernessOnly(Monster monster)
+	{
+		String name = monster.getName();
+		return WILDERNESS_ONLY.contains(name)
+			|| name.startsWith("Scorpia")
+			|| name.startsWith("Revenant ");
 	}
 
 	/**
