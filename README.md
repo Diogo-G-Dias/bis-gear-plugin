@@ -31,9 +31,11 @@ The DPS engine is an independent, clean-room implementation written from publicl
 RuneScape combat formulas — the OSRS Wiki's combat pages and Bitterkoekje's combat guide. Its output is
 built to match [dps.osrs.wiki](https://dps.osrs.wiki) for the setups it covers.
 
-Item and monster data comes from the OSRS Wiki, fetched once from its published JSON (distributed via the
-weirdgloop data CDN) and cached on disk under `.runelite/bis-finder/`. Item IDs are real in-game IDs, so
-bank items map directly.
+Item and monster data comes from the OSRS Wiki's published JSON, distributed via the weirdgloop data CDN
+(`raw.githubusercontent.com/weirdgloop/osrs-dps-calc`). The plugin fetches those two data files — and
+monster icons — over HTTPS from that fixed URL on first use, then caches them on disk under
+`.runelite/bis-finder/`; later runs read from the cache. Only static game data is downloaded, never code.
+Item IDs are real in-game IDs, so bank items map directly.
 
 ## Licence
 

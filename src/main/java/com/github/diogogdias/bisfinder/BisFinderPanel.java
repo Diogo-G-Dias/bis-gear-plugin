@@ -8,8 +8,12 @@ import com.github.diogogdias.bisfinder.calc.model.Potion;
 import com.github.diogogdias.bisfinder.calc.model.Prayer;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
 import java.time.Duration;
 import java.time.Instant;
@@ -39,6 +43,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -166,19 +171,28 @@ class BisFinderPanel extends PluginPanel
 
 		// The monster list only appears while the search field (or the list itself) is focused, so it does not
 		// sit open taking up the sidebar the rest of the time. IconTextField wraps a private inner text field
-		// and does not forward focus listeners, so watch the global focus owner instead.
-		java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager()
-			.addPropertyChangeListener("focusOwner", evt ->
+		// and does not forward focus listeners, so attach one to each of its focusable descendants (and to the
+		// list) and show the list only while focus stays within either.
+		FocusListener focusWatcher = new FocusAdapter()
+		{
+			@Override
+			public void focusGained(FocusEvent e)
 			{
-				if (!(evt.getNewValue() instanceof Component))
-				{
-					return;
-				}
-				Component focused = (Component) evt.getNewValue();
-				boolean inSearchOrList = javax.swing.SwingUtilities.isDescendingFrom(focused, search)
-					|| javax.swing.SwingUtilities.isDescendingFrom(focused, resultScroll);
+				showResults(true);
+			}
+
+			@Override
+			public void focusLost(FocusEvent e)
+			{
+				Component next = e.getOppositeComponent();
+				boolean inSearchOrList = next != null
+					&& (SwingUtilities.isDescendingFrom(next, search)
+						|| SwingUtilities.isDescendingFrom(next, resultScroll));
 				showResults(inSearchOrList);
-			});
+			}
+		};
+		addFocusWatcher(search, focusWatcher);
+		results.addFocusListener(focusWatcher);
 
 		results.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		results.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -909,6 +923,19 @@ class BisFinderPanel extends PluginPanel
 		numbers.repaint();
 		setup.revalidate();
 		setup.repaint();
+	}
+
+	/** IconTextField's text field is private, so the watcher is attached to every focusable descendant. */
+	private static void addFocusWatcher(Component component, FocusListener watcher)
+	{
+		component.addFocusListener(watcher);
+		if (component instanceof Container)
+		{
+			for (Component child : ((Container) component).getComponents())
+			{
+				addFocusWatcher(child, watcher);
+			}
+		}
 	}
 
 	/** Shows or hides the monster list. When shown it is refreshed to match the current query first. */
