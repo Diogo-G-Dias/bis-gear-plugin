@@ -6,6 +6,7 @@ import com.github.diogogdias.bisfinder.engine.DpsEngine;
 import com.github.diogogdias.bisfinder.calc.model.CombatStyleType;
 import com.github.diogogdias.bisfinder.calc.model.EquipmentPiece;
 import com.github.diogogdias.bisfinder.calc.model.Monster;
+import com.github.diogogdias.bisfinder.calc.model.MonsterAttribute;
 import com.github.diogogdias.bisfinder.calc.model.Player;
 import com.github.diogogdias.bisfinder.calc.model.PlayerBuffs;
 import com.github.diogogdias.bisfinder.calc.model.PlayerCombatStyle;
@@ -181,7 +182,7 @@ public class BisOptimizer
 
 		List<EquipmentPiece> owned = ownedEquipment(allEquipment, ownedIds);
 
-		List<Armament> armaments = armaments(owned, spells, skills);
+		List<Armament> armaments = armaments(owned, spells, skills, monster);
 		if (armaments.isEmpty())
 		{
 			return Collections.emptyList();
@@ -603,7 +604,8 @@ public class BisOptimizer
 	 * owned weapon beats outright: same handedness, no slower, and at least as good on both the accuracy
 	 * and the strength bonus for that style. A weapon with an effect is always kept.
 	 */
-	private List<Armament> armaments(List<EquipmentPiece> owned, List<Spell> spells, PlayerSkills skills)
+	private List<Armament> armaments(List<EquipmentPiece> owned, List<Spell> spells, PlayerSkills skills,
+		Monster monster)
 	{
 		// A non-positive attack speed means the item is not really a weapon (greegrees, holiday items). It
 		// would otherwise divide DPS by a negative interval and win outright.
@@ -612,6 +614,8 @@ public class BisOptimizer
 			.filter(piece -> piece.getSpeed() > 0)
 			.map(piece -> loadBlowpipe(piece, owned))
 			.collect(Collectors.toList());
+
+		List<Spell> castable = candidateSpells(spells, skills, monster);
 
 		List<Armament> armaments = new ArrayList<>();
 		for (EquipmentPiece weapon : weapons)
@@ -623,14 +627,35 @@ public class BisOptimizer
 					continue;
 				}
 
-				if (EffectItems.matters(weapon.getName())
-					|| !dominatedWeapon(weapon, weapons, style.getType()))
+				if (!EffectItems.matters(weapon.getName())
+					&& dominatedWeapon(weapon, weapons, style.getType()))
 				{
-					armaments.add(new Armament(weapon, style, spellFor(style, spells, skills)));
+					continue;
+				}
+
+				if (!castsASpell(style))
+				{
+					armaments.add(new Armament(weapon, style, null));
+					continue;
+				}
+
+				// The spell is a slot like any other: one armament per candidate, so the climb prices each
+				// with the real engine. Picking it up front on max hit alone is what made every magic setup
+				// reach for the biggest number in the spellbook regardless of the target.
+				for (Spell spell : castable)
+				{
+					armaments.add(new Armament(weapon, style, spell));
 				}
 			}
 		}
 		return armaments;
+	}
+
+	private static boolean castsASpell(PlayerCombatStyle style)
+	{
+		return style.getType() == CombatStyleType.MAGIC
+			&& style.getStance() != null
+			&& style.getStance().isCastStance();
 	}
 
 	/**
@@ -818,34 +843,52 @@ public class BisOptimizer
 	}
 
 	/**
-	 * The strongest spell the player can cast, for a style that needs one. A weaker spell of the same
-	 * element is never better, so only the best is tried.
+	 * The spells worth trying against this target: the strongest castable one of each element, plus the
+	 * strongest castable non-elemental one.
+	 *
+	 * <p>Only one spell per element is needed, because within an element a bigger max hit always wins — but
+	 * the elements must be kept apart, since the target's elemental weakness (up to +50% damage and accuracy)
+	 * can make a smaller spell of the right element beat a bigger one of the wrong element. Collapsing them
+	 * to a single strongest spell, as this used to, made an elemental weakness unreachable.
 	 */
-	private Spell spellFor(PlayerCombatStyle style, List<Spell> spells, PlayerSkills skills)
+	private List<Spell> candidateSpells(List<Spell> spells, PlayerSkills skills, Monster monster)
 	{
-		if (style.getType() != CombatStyleType.MAGIC || style.getStance() == null
-			|| !style.getStance().isCastStance())
-		{
-			return null;
-		}
-
-		Spell best = null;
-		int bestMax = -1;
+		Map<String, Spell> bestByElement = new HashMap<>();
 		for (Spell spell : spells)
 		{
-			if (spell.isBindSpell())
+			if (spell.isBindSpell() || !castable(spell, skills.getMagic(), spells)
+				|| !targetable(spell, monster))
 			{
 				continue;
 			}
 
-			int max = Spell.maxHit(spell, skills.getMagic(), spells);
-			if (max > bestMax)
+			String element = spell.getElement() == null ? "" : spell.getElement();
+			Spell best = bestByElement.get(element);
+			if (best == null || spell.getMaxHit() > best.getMaxHit())
 			{
-				bestMax = max;
-				best = spell;
+				bestByElement.put(element, spell);
 			}
 		}
-		return best;
+		return new ArrayList<>(bestByElement.values());
+	}
+
+	/**
+	 * Whether the player's Magic level allows this spell. The spell data carries no level requirement, but
+	 * {@link Spell#maxHit} resolves an elemental spell to the strongest element the level allows — so a spell
+	 * whose own max hit is above what its tier resolves to is one the player cannot reach yet. Non-elemental
+	 * spells have nothing to check against and are assumed castable, as they always have been.
+	 */
+	private static boolean castable(Spell spell, int magicLevel, List<Spell> spells)
+	{
+		return spell.getElement() == null
+			|| Spell.maxHit(spell, magicLevel, spells) >= spell.getMaxHit();
+	}
+
+	/** Demonbane spells only have a demon to be cast at; everything else goes anywhere. */
+	private static boolean targetable(Spell spell, Monster monster)
+	{
+		return !spell.getName().endsWith("Demonbane")
+			|| monster.getAttributes().contains(MonsterAttribute.DEMON);
 	}
 
 	private Player build(Armament armament, Map<String, EquipmentPiece> worn, PlayerSkills skills,

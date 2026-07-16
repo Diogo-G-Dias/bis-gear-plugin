@@ -249,6 +249,11 @@ public final class Constants
 
 	public static final Set<Integer> ZULRAH_IDS = ids(2042, 2043, 2044);
 
+	/**
+	 * Monsters melee cannot damage at all. Zulrah is deliberately absent: the 7 May 2025 update ("Zulrah is
+	 * no longer immune to melee attacks, although only halberds can reach it") made it a matter of reach
+	 * rather than immunity, so a halberd hits it for full. See {@code DpsEngine#meleeCanReach}.
+	 */
 	public static final Set<Integer> IMMUNE_TO_MELEE_DAMAGE_NPC_IDS = union(
 		ids(494), // kraken
 		ABYSSAL_PORTAL_IDS,
@@ -256,8 +261,7 @@ public final class Constants
 			7706, // zuk
 			7708, // Jal-MejJak
 			12214, 12215, 12219 // leviathan
-		),
-		ZULRAH_IDS
+		)
 	);
 
 	public static final Set<Integer> IMMUNE_TO_NON_SALAMANDER_MELEE_DAMAGE_NPC_IDS = ids(

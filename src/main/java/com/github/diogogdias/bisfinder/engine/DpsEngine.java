@@ -1,5 +1,6 @@
 package com.github.diogogdias.bisfinder.engine;
 
+import com.github.diogogdias.bisfinder.calc.Constants;
 import com.github.diogogdias.bisfinder.calc.model.CombatStyleStance;
 import com.github.diogogdias.bisfinder.calc.model.CombatStyleType;
 import com.github.diogogdias.bisfinder.calc.model.EquipmentPiece;
@@ -10,6 +11,7 @@ import com.github.diogogdias.bisfinder.calc.model.Prayer;
 import com.github.diogogdias.bisfinder.calc.model.Spell;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Assembles a full attack from the proven pieces: effective levels (with prayer / stance / void), base
@@ -120,8 +122,7 @@ public final class DpsEngine
 		CombatStyleType type = player.getStyle().getType();
 		CombatStyleStance stance = player.getStyle().getStance();
 
-		// Flying monsters can only be meleed with a halberd's reach.
-		if (hasAttribute(monster, MonsterAttribute.FLYING) && !isReachWeapon(player))
+		if (!meleeCanReach(player, monster) || immuneToStyle(player, monster))
 		{
 			return Estimate.ZERO;
 		}
@@ -138,15 +139,21 @@ public final class DpsEngine
 		long baseRoll = RollMath.attackRoll(effAttack, player.getOffensive().forStyle(type));
 
 		Modifier weaponMod = meleeWeaponModifier(player, monster);
-		Modifier salve = meleeSalve(player, monster);
 		int max = weaponMod.damage.applyFloor(baseMax);
 		long roll = weaponMod.accuracy.applyFloor(baseRoll);
-		if (salve != null)
-		{
-			// Salve stacks on top of a weapon/set bonus (DHL, Inquisitor) against the undead.
-			max = salve.damage.applyFloor(max);
-			roll = salve.accuracy.applyFloor(roll);
-		}
+
+		// The salve / black mask bonus stacks on top of a weapon or set bonus (DHL, Inquisitor).
+		Modifier task = taskModifier(player, monster, type);
+		max = task.damage.applyFloor(max);
+		roll = task.accuracy.applyFloor(roll);
+
+		Modifier bane = baneModifier(player, monster);
+		max = bane.damage.applyFloor(max);
+		roll = bane.accuracy.applyFloor(roll);
+
+		Modifier wilderness = wilderness(player);
+		max = wilderness.damage.applyFloor(max);
+		roll = wilderness.accuracy.applyFloor(roll);
 		max = monsterDamageFactor(player, monster).applyFloor(max);
 
 		// Colossal blade: flat +2 max hit per tile of the target's size, capped at +10.
@@ -154,6 +161,8 @@ public final class DpsEngine
 		{
 			max += Math.min(monster.getSize() * 2, 10);
 		}
+
+		max += ratbaneMaxBonus(player, monster);
 
 		long defenceRoll = raidScaled(monster,
 			RollMath.defenceRoll(effectiveDefenceLevel(monster) + 9, monsterDefence(monster, type)));
@@ -201,6 +210,11 @@ public final class DpsEngine
 
 	public static Estimate rangedEstimate(Player player, Monster monster)
 	{
+		if (immuneToStyle(player, monster))
+		{
+			return Estimate.ZERO;
+		}
+
 		CombatStyleStance stance = player.getStyle().getStance();
 		boolean voidSet = hasVoidRanged(player);
 
@@ -225,13 +239,19 @@ public final class DpsEngine
 		int max = modifier.damage.applyFloor(RangedCalc.maxHit(effStrength, strBonus));
 		long roll = modifier.accuracy.applyFloor(RollMath.attackRoll(effAttack, player.getOffensive().getRanged()));
 
-		// Salve (imbued only) stacks on top of the weapon's own modifier against the undead.
-		Modifier salve = salveImbued(player, monster);
-		if (salve != null)
-		{
-			max = salve.damage.applyFloor(max);
-			roll = salve.accuracy.applyFloor(roll);
-		}
+		// The salve (imbued only) or an imbued black mask on task, stacked on the weapon's own modifier.
+		Modifier task = taskModifier(player, monster, CombatStyleType.RANGED);
+		max = task.damage.applyFloor(max);
+		roll = task.accuracy.applyFloor(roll);
+
+		Modifier bane = baneModifier(player, monster);
+		max = bane.damage.applyFloor(max);
+		roll = bane.accuracy.applyFloor(roll);
+		max += ratbaneMaxBonus(player, monster);
+
+		Modifier wilderness = wilderness(player);
+		max = wilderness.damage.applyFloor(max);
+		roll = wilderness.accuracy.applyFloor(roll);
 		max = monsterDamageFactor(player, monster).applyFloor(max);
 
 		// Tonalztics of ralos throws a glaive that rolls 75% of max hit (it can hit twice, handled below).
@@ -299,6 +319,11 @@ public final class DpsEngine
 
 	public static Estimate magicEstimate(Player player, Monster monster)
 	{
+		if (immuneToStyle(player, monster))
+		{
+			return Estimate.ZERO;
+		}
+
 		int magicLevel = player.getSkills().getMagic();
 		int currentMagic = magicLevel + player.getBoosts().getMagic();
 
@@ -311,7 +336,7 @@ public final class DpsEngine
 			accuracyPrayer(player.getPrayers()), stanceBonus, false);
 
 		int baseMax = player.getSpell() != null
-			? player.getSpell().getMaxHit()
+			? spellBaseMax(player, currentMagic)
 			: poweredStaffBaseMax(nameOf(weapon), currentMagic);
 		if (baseMax <= 0)
 		{
@@ -321,12 +346,9 @@ public final class DpsEngine
 		int magicDamage = player.getBonuses().getMagicStr() + magicDamagePrayer(player.getPrayers());
 		int weakness = elementalWeaknessSeverity(player, monster);
 
-		// Salve (imbued) against the undead adds to the magic-damage pool and multiplies the attack roll.
-		Modifier salve = salveImbued(player, monster);
-		if (salve != null)
-		{
-			magicDamage += salve == SALVE_EI ? 200 : 150;
-		}
+		// The salve (imbued) or an imbued black mask on task adds to the magic-damage pool rather than
+		// multiplying the max hit, and multiplies the attack roll via taskModifier below.
+		magicDamage += taskMagicDamage(player, monster);
 
 		int max = MagicCalc.maxHit(baseMax, magicDamage) + (int) Math.floor((double) baseMax * weakness / 100.0);
 		long roll = RollMath.attackRoll(effMagic, player.getOffensive().getMagic());
@@ -334,10 +356,21 @@ public final class DpsEngine
 		{
 			roll = new Factor(100 + weakness, 100).applyFloor(roll);
 		}
-		if (salve != null)
+
+		Modifier task = taskModifier(player, monster, CombatStyleType.MAGIC);
+		roll = task.accuracy.applyFloor(roll);
+
+		// The Dragon hunter wand is a staff, so its dragonbane bonus used to sit in the melee path - where it
+		// only ever fired if you bashed a dragon with it, never when casting, which is the whole point of it.
+		if ("Dragon hunter wand".equals(nameOf(weapon)) && hasAttribute(monster, MonsterAttribute.DRAGON))
 		{
-			roll = salve.accuracy.applyFloor(roll);
+			max = new Factor(6, 5).applyFloor(max);
+			roll = new Factor(6, 5).applyFloor(roll);
 		}
+
+		Modifier wilderness = wilderness(player);
+		max = wilderness.damage.applyFloor(max);
+		roll = wilderness.accuracy.applyFloor(roll);
 		// Most NPCs defend magic with their Magic level, but a few (Verzik, Ice demon, Fragment of Seren,
 		// Baboon brawler) use their Defence level instead.
 		int magicDefLevel = usesDefenceLevelForMagicDefence(monster)
@@ -451,13 +484,68 @@ public final class DpsEngine
 		}
 	}
 
-	/** Base max hit of a powered staff from the current magic level (before magic-damage bonuses). */
+	/**
+	 * A spell's base max hit. Almost every spell carries its own in the data, but Magic Dart's is listed as 0
+	 * because it scales with the caster: floor(magic * 0.1) + 10, or floor(magic * 0.166) + 13 with a Slayer's
+	 * staff (e) on task. Without this it scored nothing, which mattered once leafy creatures started refusing
+	 * every spell but this one.
+	 */
+	private static int spellBaseMax(Player player, int currentMagic)
+	{
+		Spell spell = player.getSpell();
+		if (!"Magic Dart".equals(spell.getName()))
+		{
+			return spell.getMaxHit();
+		}
+
+		boolean enchantedOnTask = "Slayer's staff (e)".equals(nameOf(player.getEquipment().getWeapon()))
+			&& player.getBuffs().isOnSlayerTask();
+		return enchantedOnTask
+			? (int) Math.floor(currentMagic * 0.166) + 13
+			: (int) Math.floor(currentMagic * 0.1) + 10;
+	}
+
+	/**
+	 * Base max hit of a powered staff from the visible (boosted) magic level, before magic-damage bonuses.
+	 * Returns -1 for a staff whose formula is not modelled, which scores the setup at zero rather than
+	 * guessing.
+	 *
+	 * <p>Every formula here was taken from the staff's own wiki page and reconciled against a worked example
+	 * on that page (e.g. the swamp trident's "starting at 24 damage with level 78 Magic" → 78/3-2 = 24).
+	 * That check matters: the wiki renders these as stacked fractions, which flatten into ambiguous text when
+	 * scraped — "⌊8(Magic Level)+9637⌋" is really ⌊(8·magic+96)/37⌋. A formula that cannot be reconciled
+	 * against a stated data point is left out rather than guessed at; see docs/architecture/engine-gaps.md.
+	 */
 	private static int poweredStaffBaseMax(String weapon, int magicLevel)
 	{
+		// The seas/swamp tridents each have (e), (o) and (e) (o) variants that only change the look.
+		if (weapon.startsWith("Trident of the seas"))
+		{
+			return magicLevel / 3 - 5;
+		}
+		if (weapon.startsWith("Trident of the swamp"))
+		{
+			return magicLevel / 3 - 2;
+		}
+
 		switch (weapon)
 		{
 			case "Tumeken's shadow":
 				return magicLevel / 3 + 1;
+			case "Sanguinesti staff":
+			case "Holy sanguinesti staff":
+				// The holy kit is cosmetic: "Though its stats do not change".
+				return magicLevel / 3 - 1;
+			case "Thammaron's sceptre":
+			case "Thammaron's sceptre (a)":
+				return magicLevel / 3 - 8;
+			case "Accursed sceptre":
+			case "Accursed sceptre (a)":
+				return magicLevel / 3 - 6;
+			case "Eye of ayak":
+				return magicLevel / 3 - 6;
+			case "Warped sceptre":
+				return (8 * magicLevel + 96) / 37;
 			default:
 				return -1;
 		}
@@ -465,14 +553,20 @@ public final class DpsEngine
 
 	// --- gear / context multipliers -----------------------------------------------------------------
 
-	/** The weapon/set multiplier: DHL, Inquisitor, or the slayer helmet (which yields to salve). */
+	/**
+	 * The weapon/set multiplier: the Dragon hunter lance's dragonbane, or the Inquisitor set's crush bonus.
+	 *
+	 * <p>The black mask is deliberately not here. It is a separate source that stacks multiplicatively with
+	 * these ("This stacks multiplicatively with both Void Knight equipment and the Slayer helm (i)"), so
+	 * folding it into this either/or chain let a Dragon hunter lance silently swallow it on a dragon task.
+	 * See {@link #taskModifier}.
+	 */
 	private static Modifier meleeWeaponModifier(Player player, Monster monster)
 	{
 		String weaponName = nameOf(player.getEquipment().getWeapon());
 		CombatStyleType type = player.getStyle().getType();
 
-		if ((weaponName.equals("Dragon hunter lance") || weaponName.equals("Dragon hunter wand"))
-			&& hasAttribute(monster, MonsterAttribute.DRAGON))
+		if (weaponName.equals("Dragon hunter lance") && hasAttribute(monster, MonsterAttribute.DRAGON))
 		{
 			return Modifier.both(6, 5);
 		}
@@ -484,13 +578,57 @@ public final class DpsEngine
 			return Modifier.both(mace ? 43 : 41, 40);
 		}
 
-		// The slayer helmet's bonus is suppressed by a salve amulet against the undead.
-		if (onTaskWithBlackMask(player) && meleeSalve(player, monster) == null)
+		return Modifier.NONE;
+	}
+
+	/**
+	 * The salve amulet's undead bonus, or the black mask's on-task bonus - never both. Mod Ash: "Salve
+	 * effects override the Slayer helm / black mask effects (because they're either identical or bigger)."
+	 *
+	 * <p>The black mask is +16.67% to melee for every variant, and a further +15% to Ranged and +15% to
+	 * Magic for the imbued ones only. Magic is handled separately, because a magic damage bonus is added to
+	 * the damage pool rather than multiplied onto the max hit; this returns only its accuracy there.
+	 */
+	private static Modifier taskModifier(Player player, Monster monster, CombatStyleType type)
+	{
+		Modifier salve = type.isMelee() ? meleeSalve(player, monster) : salveImbued(player, monster);
+		if (salve != null)
+		{
+			return salve;
+		}
+
+		if (!onTaskWithBlackMask(player))
+		{
+			return Modifier.NONE;
+		}
+
+		if (type.isMelee())
 		{
 			return Modifier.both(7, 6);
 		}
 
-		return Modifier.NONE;
+		// Ranged and Magic only get a bonus from an imbued mask.
+		if (!isImbued(nameOf(player.getEquipment().getHead())))
+		{
+			return Modifier.NONE;
+		}
+		return type == CombatStyleType.MAGIC
+			? new Modifier(new Factor(23, 20), Factor.identity())
+			: Modifier.both(23, 20);
+	}
+
+	/**
+	 * The extra magic damage (in tenths of a percent, as the damage pool counts it) from the salve or an
+	 * imbued black mask on task. Mirrors {@link #taskModifier}: the salve wins when both are worn.
+	 */
+	private static int taskMagicDamage(Player player, Monster monster)
+	{
+		Modifier salve = salveImbued(player, monster);
+		if (salve != null)
+		{
+			return salve == SALVE_EI ? 200 : 150;
+		}
+		return onTaskWithBlackMask(player) && isImbued(nameOf(player.getEquipment().getHead())) ? 150 : 0;
 	}
 
 	/** Melee salve against the undead: enchanted is 20%, base/imbued is 15%. */
@@ -557,6 +695,37 @@ public final class DpsEngine
 			&& nameOf(e.getBody()).equals("Elite void top")
 			&& nameOf(e.getLegs()).equals("Elite void robe")
 			&& nameOf(e.getHands()).equals("Void knight gloves");
+	}
+
+	/** The revenant-ether weapons, whose charged form is powered up in the Wilderness. */
+	private static final List<String> WILDERNESS_WEAPONS = Arrays.asList(
+		"Craw's bow", "Webweaver bow",
+		"Viggora's chainmace", "Ursine chainmace",
+		"Thammaron's sceptre", "Thammaron's sceptre (a)",
+		"Accursed sceptre", "Accursed sceptre (a)");
+
+	/**
+	 * A charged revenant-ether weapon hits NPCs in the Wilderness 50% harder and 50% more accurately. The
+	 * bonus needs the charge: an uncharged one is a plain weapon, and the wiki data tells the two apart by
+	 * version rather than by name.
+	 *
+	 * <p>Only the bows and the chainmaces can reach this today. The two sceptres are powered staves, which
+	 * {@link #poweredStaffBaseMax} does not model yet, so magic bails out before the multiplier is read; the
+	 * magic side is wired up so that modelling them is all it takes.
+	 */
+	private static Modifier wilderness(Player player)
+	{
+		if (!player.getBuffs().isInWilderness())
+		{
+			return Modifier.NONE;
+		}
+		EquipmentPiece weapon = player.getEquipment().getWeapon();
+		if (weapon == null || !WILDERNESS_WEAPONS.contains(weapon.getName())
+			|| !"Charged".equals(weapon.getVersion()))
+		{
+			return Modifier.NONE;
+		}
+		return Modifier.both(3, 2);
 	}
 
 	private static final Modifier SALVE_EI = Modifier.both(6, 5);
@@ -655,6 +824,64 @@ public final class DpsEngine
 			&& weapon.getCategory() == com.github.diogogdias.bisfinder.calc.model.EquipmentCategory.POLEARM;
 	}
 
+	private static boolean isSalamander(Player player)
+	{
+		EquipmentPiece weapon = player.getEquipment().getWeapon();
+		return weapon != null
+			&& weapon.getCategory() == com.github.diogogdias.bisfinder.calc.model.EquipmentCategory.SALAMANDER;
+	}
+
+	/**
+	 * Whether melee can physically reach the target, which is a separate question from whether melee hurts it.
+	 *
+	 * <p>A halberd strikes from a tile away, and so does a salamander's scorch. That reach is what makes a
+	 * flying enemy meleeable (since 25 June 2025, for every flying enemy rather than just aviansies), and it
+	 * is the only way to touch Zulrah, which swims out of range of anything shorter.
+	 */
+	private static boolean meleeCanReach(Player player, Monster monster)
+	{
+		if (Constants.ZULRAH_IDS.contains(monster.getId()))
+		{
+			// A salamander's scorch is not enough here: the wiki is explicit that only halberds reach Zulrah.
+			return isReachWeapon(player);
+		}
+		if (hasAttribute(monster, MonsterAttribute.FLYING))
+		{
+			return isReachWeapon(player) || isSalamander(player);
+		}
+		return true;
+	}
+
+	/**
+	 * Whether this style simply cannot hurt the target, and so scores nothing rather than a number the
+	 * player could never achieve. The Kraken and the Leviathan are out of melee's reach even with a halberd;
+	 * Tekton and Dusk shrug off arrows.
+	 *
+	 * <p>{@link Constants#IMMUNE_TO_NON_SALAMANDER_MELEE_DAMAGE_NPC_IDS} is deliberately not consulted: it
+	 * predates the 25 June 2025 change that let halberds hit every flying enemy, so enforcing it would wrongly
+	 * zero a halberd at aviansies. Reach is handled by {@link #meleeCanReach} instead.
+	 */
+	private static boolean immuneToStyle(Player player, Monster monster)
+	{
+		int id = monster.getId();
+		CombatStyleType type = player.getStyle().getType();
+
+		if (hasAttribute(monster, MonsterAttribute.LEAFY) && !canDamageLeafy(player, type))
+		{
+			return true;
+		}
+
+		if (type == CombatStyleType.MAGIC)
+		{
+			return Constants.IMMUNE_TO_MAGIC_DAMAGE_NPC_IDS.contains(id);
+		}
+		if (!type.isMelee())
+		{
+			return Constants.IMMUNE_TO_RANGED_DAMAGE_NPC_IDS.contains(id);
+		}
+		return Constants.IMMUNE_TO_MELEE_DAMAGE_NPC_IDS.contains(id);
+	}
+
 	private static boolean hasFullInquisitor(Player player)
 	{
 		Player.PlayerEquipment e = player.getEquipment();
@@ -663,6 +890,14 @@ public final class DpsEngine
 			&& nameOf(e.getLegs()).equals("Inquisitor's plateskirt");
 	}
 
+	/**
+	 * A black mask or any slayer helmet, on task.
+	 *
+	 * <p>The helmet is matched on "slayer helmet" anywhere in the name rather than as a prefix: the plain
+	 * "Slayer helmet" is the exception, and the fourteen themed ones the game actually hands out (Purple,
+	 * Hydra, Araxyte, Oathplate, Tzkal, ...) all put their colour first. Matching the prefix meant a player
+	 * in a coloured helm got no on-task bonus at all.
+	 */
 	private static boolean onTaskWithBlackMask(Player player)
 	{
 		if (!player.getBuffs().isOnSlayerTask())
@@ -670,7 +905,132 @@ public final class DpsEngine
 			return false;
 		}
 		String head = nameOf(player.getEquipment().getHead());
-		return head.startsWith("Black mask") || head.startsWith("Slayer helmet");
+		return head.startsWith("Black mask")
+			|| head.toLowerCase(Locale.ROOT).contains("slayer helmet");
+	}
+
+	/** The imbued variants, which alone carry the Ranged and Magic bonuses, are the ones suffixed "(i)". */
+	private static boolean isImbued(String head)
+	{
+		return head.endsWith("(i)");
+	}
+
+	/** The leaf-bladed weapons, the only melee a Kurask or Turoth can be hurt by. */
+	private static final List<String> LEAF_BLADED = Arrays.asList(
+		"Leaf-bladed battleaxe", "Leaf-bladed spear", "Leaf-bladed sword");
+
+	/** Broad-tipped ammunition, the only ranged a Kurask or Turoth can be hurt by. */
+	private static final List<String> BROAD_AMMO = Arrays.asList(
+		"Broad arrows", "Broad bolts", "Amethyst broad bolts");
+
+	/**
+	 * The rat bone weapons from Scurrius. Listed rather than matched on a "Bone " prefix, which would drag in
+	 * the Bone dagger, club and spear - Dorgeshuun and barbarian gear with no ratbane effect at all.
+	 */
+	private static final List<String> RATBANE = Arrays.asList("Bone mace", "Bone shortbow", "Bone staff");
+
+	/**
+	 * A weapon's bonus against the kind of thing it was built to kill. Each is the weapon's own multiplier,
+	 * applied only when the target carries the matching attribute.
+	 *
+	 * <p>Duke Sucellus is the lone demon that resists demonbane, by 30% - which is what turns Arclight's 70%
+	 * into 49% there. (The wiki data has a {@code demonbaneVulnerability} input for this, but nothing fills
+	 * it in: the code that did was the deleted calculator's {@code sanitizeInputs}.)
+	 */
+	private static Modifier baneModifier(Player player, Monster monster)
+	{
+		String weapon = nameOf(player.getEquipment().getWeapon());
+
+		if (hasAttribute(monster, MonsterAttribute.DEMON))
+		{
+			int accuracy;
+			int damage;
+			switch (weapon)
+			{
+				case "Silverlight":
+				case "Silverlight (dyed)":
+				case "Darklight":
+					accuracy = 0;
+					damage = 60;
+					break;
+				case "Arclight":
+				case "Emberlight":
+					accuracy = 70;
+					damage = 70;
+					break;
+				case "Scorching bow":
+					accuracy = 30;
+					damage = 30;
+					break;
+				case "Burning claws":
+					accuracy = 5;
+					damage = 5;
+					break;
+				default:
+					accuracy = 0;
+					damage = 0;
+					break;
+			}
+
+			if ("Duke Sucellus".equals(monster.getName()))
+			{
+				accuracy = accuracy * 7 / 10;
+				damage = damage * 7 / 10;
+			}
+			if (damage > 0 || accuracy > 0)
+			{
+				return new Modifier(new Factor(100 + accuracy, 100), new Factor(100 + damage, 100));
+			}
+		}
+
+		// Every keris keeps the original's 33% against kalphites and scabarites, except the partisan of
+		// amascut: "this variant has a damage bonus of 15%, down from the base weapon's 33%", traded for far
+		// better stats inside Tombs of Amascut. The partisan of breaching adds 33% accuracy on top.
+		// The 1/51 triple-damage proc every keris has is not modelled - see docs/architecture/engine-gaps.md.
+		if (hasAttribute(monster, MonsterAttribute.KALPHITE) && weapon.startsWith("Keris"))
+		{
+			int damage = "Keris partisan of amascut".equals(weapon) ? 15 : 33;
+			int accuracy = "Keris partisan of breaching".equals(weapon) ? 33 : 0;
+			return new Modifier(new Factor(100 + accuracy, 100), new Factor(100 + damage, 100));
+		}
+
+		if (hasAttribute(monster, MonsterAttribute.GOLEM) && "Barronite mace".equals(weapon))
+		{
+			return Modifier.both(23, 20);
+		}
+
+		// Only the battleaxe: "Unlike the leaf-bladed battleaxe, the sword does not have a 17.5% damage buff".
+		if (hasAttribute(monster, MonsterAttribute.LEAFY) && "Leaf-bladed battleaxe".equals(weapon))
+		{
+			return new Modifier(Factor.identity(), new Factor(47, 40));
+		}
+
+		return Modifier.NONE;
+	}
+
+	/** Ratbane weapons add a flat 10 to the max hit against rats, rather than a percentage. */
+	private static int ratbaneMaxBonus(Player player, Monster monster)
+	{
+		return hasAttribute(monster, MonsterAttribute.RAT)
+			&& RATBANE.contains(nameOf(player.getEquipment().getWeapon())) ? 10 : 0;
+	}
+
+	/**
+	 * Whether this style can hurt a leafy creature at all: "they can only be damaged with leaf-bladed
+	 * weapons, broad ammunition, or the Magic Dart spell; they are immune to any other types of attacks."
+	 */
+	private static boolean canDamageLeafy(Player player, CombatStyleType type)
+	{
+		if (type == CombatStyleType.MAGIC)
+		{
+			Spell spell = player.getSpell();
+			return spell != null && "Magic Dart".equals(spell.getName());
+		}
+		if (type.isMelee())
+		{
+			return LEAF_BLADED.contains(nameOf(player.getEquipment().getWeapon()));
+		}
+		return BROAD_AMMO.contains(nameOf(player.getEquipment().getAmmo()));
 	}
 
 	// --- hit structure ------------------------------------------------------------------------------

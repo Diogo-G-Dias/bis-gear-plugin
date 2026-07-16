@@ -116,6 +116,37 @@ public class PerStyleTest
 		Assert.assertNull("special attacks are deferred in the clean-room engine", magic.getSpec());
 	}
 
+	/**
+	 * Zulrah is the end-to-end case for melee reach: from a full bank the search must offer melee (a halberd
+	 * has reached it since 7 May 2025), but every melee setup it offers must be a halberd - suggesting a whip
+	 * or a scythe there is the bug this guards.
+	 */
+	@Test
+	public void zulrahOffersOnlyHalberdMelee()
+	{
+		Monster zulrah = monster("Zulrah", "Serpentine");
+
+		List<BisOptimizer.Result> results = new BisOptimizer().findBestPerStyle(
+			equipment, spells, bank, maxed(), PlayerBuffs.builder().build(), zulrah,
+			BisOptimizer.Options.auto());
+
+		Assert.assertFalse(results.isEmpty());
+
+		List<BisOptimizer.Result> melee = results.stream()
+			.filter(r -> r.getStyleGroup() == BisOptimizer.Style.MELEE)
+			.collect(Collectors.toList());
+
+		Assert.assertFalse("a halberd can melee Zulrah, so melee must be offered", melee.isEmpty());
+
+		for (BisOptimizer.Result result : melee)
+		{
+			EquipmentPiece weapon = result.getPlayer().getEquipment().getWeapon();
+			Assert.assertEquals("only a halberd reaches Zulrah, but the search offered " + weapon.getName(),
+				com.github.diogogdias.bisfinder.calc.model.EquipmentCategory.POLEARM, weapon.getCategory());
+			Assert.assertTrue("the melee setup should be scored", result.getDps() > 0);
+		}
+	}
+
 	private static Set<Integer> idsFor(String... names)
 	{
 		List<String> wanted = java.util.Arrays.asList(names);
