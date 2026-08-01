@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -48,6 +49,13 @@ public class WikiDataParsingTest
 	public static void parse() throws IOException
 	{
 		Path dir = Paths.get(System.getProperty("bisfinder.wikiJsonDir", DEFAULT_JSON_DIR));
+
+		// This test validates the models against a full local weirdgloop dataset, which only exists when a dev
+		// points -Dbisfinder.wikiJsonDir at a checkout. Skip (don't fail) when it is absent, so the suite is
+		// green on CI and any other machine - the default path is one dev's now-deleted scratchpad clone.
+		Assume.assumeTrue("wiki JSON dir not present: " + dir + " (set -Dbisfinder.wikiJsonDir to run)",
+			Files.isReadable(dir.resolve("equipment.json")) && Files.isReadable(dir.resolve("monsters.json")));
+
 		Gson gson = new Gson();
 
 		try (Reader reader = Files.newBufferedReader(dir.resolve("equipment.json"), StandardCharsets.UTF_8))
