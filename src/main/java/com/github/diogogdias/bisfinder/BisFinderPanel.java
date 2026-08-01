@@ -477,7 +477,8 @@ class BisFinderPanel extends PluginPanel
 		grid.add(reductionRow(ARCLIGHT, arclight, "Arclight specials landed (demons only)"));
 		grid.add(reductionRow(EMBERLIGHT, emberlight, "Emberlight specials landed (demons only)"));
 		grid.add(reductionRow(BANDOS_GODSWORD, bgs, "Defence already drained by a Bandos godsword, in points"));
-		grid.add(reductionRow(TONALZTICS, tonalztic, "Tonalztics of ralos specials landed"));
+		grid.add(reductionRow(TONALZTICS, tonalztic,
+			"Tonalztics of ralos hits landed: each -12.5% of the target's Magic level (a charged special is two hits)"));
 		grid.add(reductionRow(SEERCULL, seercull, "Magic level drained by a Seercull, in points"));
 		grid.add(reductionRow(EYE_OF_AYAK, ayak, "Magic defence drained by Eye of ayak specials, in points"));
 

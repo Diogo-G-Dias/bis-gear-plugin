@@ -379,6 +379,15 @@ public final class DpsEngine
 			RollMath.defenceRoll(magicDefLevel + 9, monster.getDefensive().getMagic()));
 		double accuracy = RollMath.normalAccuracy(roll, defenceRoll);
 
+		// The Sanguinesti staff's heal now deals 8 extra damage when it procs (2026 Summer Sweep-Up), on 1 in
+		// 5 successful hits. Like the enchanted-bolt procs, this adds to DPS while the shown max hit stays the
+		// base roll: the +8 is a rare bonus, not the number the spell usually lands.
+		if (nameOf(weapon).contains("anguinesti staff"))
+		{
+			double expectedHit = RollMath.standardExpectedHit(accuracy, max) + accuracy * 0.2 * 8.0;
+			return new Estimate(RollMath.dps(expectedHit, player.getAttackSpeed()), max, accuracy);
+		}
+
 		return Estimate.of(AttackDistribution.single(Hitsplat.standard(accuracy, max)), player.getAttackSpeed());
 	}
 
@@ -534,8 +543,9 @@ public final class DpsEngine
 				return magicLevel / 3 + 1;
 			case "Sanguinesti staff":
 			case "Holy sanguinesti staff":
-				// The holy kit is cosmetic: "Though its stats do not change".
-				return magicLevel / 3 - 1;
+				// The holy kit is cosmetic: "Though its stats do not change". Base max raised by 1 in the 2026
+				// Summer Sweep-Up: "27 at 82 Magic" reconciles floor(82/3) = 27.
+				return magicLevel / 3;
 			case "Thammaron's sceptre":
 			case "Thammaron's sceptre (a)":
 				return magicLevel / 3 - 8;
@@ -571,11 +581,29 @@ public final class DpsEngine
 			return Modifier.both(6, 5);
 		}
 
-		if (type == CombatStyleType.CRUSH && hasFullInquisitor(player))
+		if (type == CombatStyleType.CRUSH)
 		{
-			// The Inquisitor's mace triples the set's crush bonus, from +2.5% to +7.5%.
-			boolean mace = weaponName.equals("Inquisitor's mace");
-			return Modifier.both(mace ? 43 : 41, 40);
+			// The 2026 Summer Sweep-Up removed the Inquisitor set bonus and the mace's tripling of it, moving
+			// the crush boost onto the individual pieces (great helm +0.5%, hauberk +1%, plateskirt +1%) so
+			// they now count on their own. The mace's benefit is its own +7 strength / +7 crush stats.
+			Player.PlayerEquipment e = player.getEquipment();
+			int tenths = 0;
+			if (nameOf(e.getHead()).equals("Inquisitor's great helm"))
+			{
+				tenths += 5;
+			}
+			if (nameOf(e.getBody()).equals("Inquisitor's hauberk"))
+			{
+				tenths += 10;
+			}
+			if (nameOf(e.getLegs()).equals("Inquisitor's plateskirt"))
+			{
+				tenths += 10;
+			}
+			if (tenths > 0)
+			{
+				return Modifier.both(1000 + tenths, 1000);
+			}
 		}
 
 		return Modifier.NONE;
@@ -775,6 +803,15 @@ public final class DpsEngine
 		{
 			def -= def * 10 / 100;
 		}
+
+		// Flat drains, subtracted after the percentage cuts. A Tonalztics of ralos "Division" hit lowers the
+		// Defence level by 12.5% of the target's Magic level (raised from 10% in the 2026 Summer Sweep-Up); a
+		// charged special is two hits, so it is counted per hit here.
+		int magicLevel = monster.getSkills().getMagic();
+		for (int i = 0; i < dr.getTonalztic(); i++)
+		{
+			def -= magicLevel * 125 / 1000;
+		}
 		def -= dr.getBgs();
 		return Math.max(0, def);
 	}
@@ -880,14 +917,6 @@ public final class DpsEngine
 			return Constants.IMMUNE_TO_RANGED_DAMAGE_NPC_IDS.contains(id);
 		}
 		return Constants.IMMUNE_TO_MELEE_DAMAGE_NPC_IDS.contains(id);
-	}
-
-	private static boolean hasFullInquisitor(Player player)
-	{
-		Player.PlayerEquipment e = player.getEquipment();
-		return nameOf(e.getHead()).equals("Inquisitor's great helm")
-			&& nameOf(e.getBody()).equals("Inquisitor's hauberk")
-			&& nameOf(e.getLegs()).equals("Inquisitor's plateskirt");
 	}
 
 	/**

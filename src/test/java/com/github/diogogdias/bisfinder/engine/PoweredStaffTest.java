@@ -51,8 +51,9 @@ public class PoweredStaffTest
 	{
 		assertBaseMax("Trident of the seas", 75, 20);
 		assertBaseMax("Trident of the swamp", 78, 24);
-		assertBaseMax("Sanguinesti staff", 82, 26);
-		assertBaseMax("Sanguinesti staff", 123, 40);
+		// Base max raised by 1 in the 2026 Summer Sweep-Up: floor(magic/3), was floor(magic/3) - 1.
+		assertBaseMax("Sanguinesti staff", 82, 27);
+		assertBaseMax("Sanguinesti staff", 123, 41);
 		assertBaseMax("Accursed sceptre", 70, 17);
 		assertBaseMax("Accursed sceptre", 123, 35);
 		assertBaseMax("Warped sceptre", 62, 16);

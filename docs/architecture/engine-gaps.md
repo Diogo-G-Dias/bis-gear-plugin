@@ -69,6 +69,21 @@ not:
 Each is plumbed from the panel or the model and then dropped on the floor. `inWilderness` was the worst case:
 the checkbox had a tooltip promising it "powers the wilderness weapons" and did nothing at all.
 
+## Defence-reduction inputs — 5 of 10 have no reader
+
+`DefenceReductions` (and the Advanced panel) expose ten drains; `effectiveDefenceLevel` applies only Elder
+maul (-35%), DWH (-30%), Accursed (-15%), Vulnerability (-10%), BGS (flat) and Tonalztics (wired 2026-08-01,
+-12.5% of Magic level per hit). Still dropped on the floor — the panel spinner does nothing:
+
+- `arclight`, `emberlight` — the spec drains the target's defensive stats (demon-focused). Same target as the
+  wired ones, so cheap to add once the exact per-hit percentage is verified.
+- `seercull` — drains the target's **Magic level**, not its Defence. Affects magic accuracy and Twisted bow
+  scaling, a different roll from the melee/ranged defence path.
+- `ayak` — drains the target's **Magic defence**, a third roll again.
+
+The last two are why this is not a one-liner: three different targets. Not touched by the 2026 Summer
+Sweep-Up (only Tonalztics changed, 10% -> 12.5%), so they are a pre-existing gap, not a patch regression.
+
 ## Magic
 
 - **`poweredStaffBaseMax` — mostly done 2026-07-16.** Modelled: both tridents (and their (e)/(o) variants),
