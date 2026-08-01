@@ -137617,7 +137617,7 @@
     "speed": 5,
     "category": "Axe",
     "bonuses": {
-      "str": 121,
+      "str": 125,
       "ranged_str": 0,
       "magic_str": 0,
       "prayer": 0
@@ -137648,7 +137648,7 @@
     "speed": 5,
     "category": "Axe",
     "bonuses": {
-      "str": 121,
+      "str": 125,
       "ranged_str": 0,
       "magic_str": 0,
       "prayer": 0
