@@ -626,6 +626,17 @@ class BisFinderPanel extends PluginPanel
 			search();
 		});
 		menu.add(exclude);
+		if (plugin.excludedCount() > 0)
+		{
+			menu.addSeparator();
+			JMenuItem reset = new JMenuItem("Reset excluded items");
+			reset.addActionListener(e ->
+			{
+				plugin.clearExclusions();
+				search();
+			});
+			menu.add(reset);
+		}
 		label.setComponentPopupMenu(menu);
 	}
 
